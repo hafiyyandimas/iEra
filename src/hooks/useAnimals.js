@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchAnimals } from '../services/animalService.js';
 import { cacheAnimals, getCachedAnimals } from '../storage/localCache.js';
-import { getErrorMessage } from '../utils/errors.js';
+import { getApiError } from '../services/apiClient.js';
 
 export function useAnimals(isOnline) {
   const [animals, setAnimals] = useState([]);
@@ -12,8 +12,9 @@ export function useAnimals(isOnline) {
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
+    let cached = null;
     try {
-      const cached = getCachedAnimals();
+      cached = getCachedAnimals();
       if (cached) {
         setAnimals(cached);
         setFromCache(true);
@@ -23,22 +24,16 @@ export function useAnimals(isOnline) {
         return;
       }
       const result = await fetchAnimals();
-      cacheAnimals(result);
       setAnimals(result);
       setFromCache(false);
-    } catch (loadError) {
-      setError(getErrorMessage(loadError));
-      if (!animals.length) {
-        try {
-          const cached = getCachedAnimals();
-          if (cached) {
-            setAnimals(cached);
-            setFromCache(true);
-          }
-        } catch (cacheError) {
-          setError(getErrorMessage(cacheError));
-        }
+      try {
+        cacheAnimals(result);
+      } catch (cacheError) {
+        setError(cacheError.message);
       }
+    } catch (loadError) {
+      setError(getApiError(loadError));
+      if (cached) setFromCache(true);
     } finally {
       setLoading(false);
     }

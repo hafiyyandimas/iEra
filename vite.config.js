@@ -4,6 +4,15 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  envPrefix: ['VITE_API_'],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    }
+  },
   build: {
     rollupOptions: {
       output: {
@@ -11,7 +20,6 @@ export default defineConfig({
           if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/') || id.includes('/node_modules/scheduler/')) {
             return 'react-vendor';
           }
-          if (id.includes('/node_modules/@supabase/')) return 'supabase-vendor';
         }
       }
     }
@@ -21,11 +29,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'images/animal-placeholder.svg'],
+      includeAssets: ['favicon.svg', 'images/animal-placeholder.svg', 'offline.html'],
       manifest: {
-        name: 'iEra — Jejak yang hilang',
+        name: 'iEra — Extinct Species Explorer',
         short_name: 'iEra',
-        description: 'Kenali kisah spesies yang tercatat punah pada tahun kelahiranmu.',
+        description: 'Jelajahi spesies punah dan catatan kepunahannya.',
         theme_color: '#f7f8f2',
         background_color: '#f7f8f2',
         display: 'standalone',
@@ -42,14 +50,16 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith('/rest/v1/animals'),
+            urlPattern: ({ url }) => url.pathname === '/api/animals' || /^\/api\/animals\/year\/\d+$/.test(url.pathname),
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'iera-animal-catalog',
-              expiration: { maxEntries: 1, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              networkTimeoutSeconds: 3
+              cacheName: 'iera-public-animal-catalog',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              networkTimeoutSeconds: 4,
+              cacheableResponse: { statuses: [200] }
             }
           }
         ]

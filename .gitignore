@@ -1,7 +1,31 @@
-node_modules
-dist
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+coverage/
+
+# Local environment
 .env
 .env.local
+.env.*.local
+
+# Local tool data
+/.vercel/
+/supabase/.temp/
+
+# Local-only content
+/Note/
+/iera-dataset/
+/backend/node_modules/
+/backend/.env
+/backend/.env.local
+
+# Operating system files
 .DS_Store
-Note
-iera-dataset
+AI.md
+ANTISLOP.md
+CLAUDE_REVISION_BRIEF.md
+CLAUDE.md
+PROJECT_STRUCTURE.md
+database

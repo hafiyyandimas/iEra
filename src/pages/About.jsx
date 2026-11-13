@@ -1,20 +1,21 @@
 import { BookOpen, GraduationCap, IdCard, Leaf } from 'lucide-react';
 import { profile } from '../data/profile.js';
 
+const details = [
+  { label: 'Nama', value: profile.name, icon: IdCard },
+  { label: 'NIM', value: profile.nim, icon: IdCard },
+  { label: 'Kelompok', value: profile.group, icon: GraduationCap },
+  { label: 'Shift', value: profile.shift, icon: BookOpen }
+];
+
 export default function AboutPage() {
-  const details = [
-    { label: 'Nama', value: profile.name, icon: IdCard },
-    { label: 'NIM', value: profile.nim, icon: IdCard },
-    { label: 'Kelompok', value: profile.group, icon: GraduationCap },
-    { label: 'Shift', value: profile.shift, icon: BookOpen }
-  ];
   return (
     <section className="mx-auto max-w-2xl space-y-6">
-      <div className="rounded-[2rem] bg-forest p-7 text-white sm:p-10">
+      <div className="rounded-3xl bg-forest p-7 text-white sm:p-10">
         <span className="grid size-12 place-items-center rounded-2xl bg-white/10 text-sage"><Leaf size={23} /></span>
-        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-sage">Tentang pembuat</p>
+        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-sage">Profil praktikan</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">About Me</h1>
-        <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/75">iEra adalah ruang kecil untuk melihat jejak spesies dan menjaga kisahnya tetap diingat.</p>
+        <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80">iEra membantu menjelajahi catatan kepunahan spesies, menyimpan favorit, dan membuat koleksi pribadi di perangkat.</p>
       </div>
       <div className="overflow-hidden rounded-3xl border border-line bg-white">
         {details.map(({ label, value, icon: Icon }, index) => (
@@ -24,7 +25,6 @@ export default function AboutPage() {
           </div>
         ))}
       </div>
-      <p className="px-1 text-xs leading-relaxed text-muted">Data spesies ditampilkan sesuai sumber yang tercantum pada setiap kartu. Tahun evaluasi konservasi tidak otomatis dianggap sebagai tahun kepunahan.</p>
     </section>
   );
 }

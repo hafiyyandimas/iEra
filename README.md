@@ -1,25 +1,55 @@
-# iEra
+# iEra — Extinct Species Explorer
 
-iEra adalah PWA React untuk mencari catatan spesies yang tercatat punah berdasarkan perkiraan tahun lahir, mengelola favorit pribadi, dan membaca profil praktikan. Katalog sengaja tidak berisi data contoh; masukkan data yang sudah diverifikasi beserta sumber serta lisensi gambar sebelum penggunaan.
+iEra adalah PWA tugas besar PPB untuk menjelajahi katalog spesies yang tercatat punah berdasarkan tahun, mencari hubungan dengan perkiraan tahun lahir, menyimpan favorit/catatan lokal, dan membuat entri pribadi yang belum diverifikasi.
 
-## Mulai cepat
+## Struktur
+
+- Frontend React + Vite berada di root repository; route memakai React Router.
+- Backend REST API Node.js + Express berada di `backend/` dan membaca katalog Supabase.
+- `database/` berisi skema baru (tahun saja), migrasi dari Modul 5, dan template CSV.
+- Favorit, catatan, serta spesies pribadi hanya tersimpan di localStorage perangkat. Tidak ada login atau sinkronisasi antarperangkat.
+
+## Menjalankan lokal
+
+Gunakan Node.js 20 atau lebih baru. Siapkan frontend `.env.local` dari `.env.example`, lalu siapkan `backend/.env` dari `backend/.env.example`. Isi kredensial Supabase hanya pada backend.
+
+Terminal pertama:
 
 ```powershell
 npm install
-Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Isi environment Supabase dan jalankan SQL sebelum memuat katalog. Lihat [Setup](./docs/SETUP.md), [panduan impor katalog](./docs/DATA_IMPORT.md), dan [perilaku offline](./docs/PWA_OFFLINE.md).
+Terminal kedua:
+
+```powershell
+npm --prefix backend install
+npm run dev:api
+```
+
+Frontend berjalan di Vite, API di `http://localhost:3000`. Jika frontend dan backend dideploy terpisah, set `VITE_API_BASE_URL` ke base URL API produksi.
+
+## Database dan katalog
+
+Untuk proyek Supabase baru, jalankan `database/schema.sql`. Jika tabel lama Modul 5 sudah berisi katalog, jalankan `database/migration_from_module5.sql` agar nilai tahun tetap tersimpan dan kolom tanggal/slot dihapus. Dataset awal yang sudah dipetakan ke skema baru ada di `database/seed_animals.csv`; jangan impor ulang setelah migrasi mempertahankan slug yang sama.
+
+Jangan isi katalog dengan spesies, tahun, sumber, atau lisensi yang belum diverifikasi. Langkah detail berada di [docs/DATABASE.md](./docs/DATABASE.md).
 
 ## Fitur
 
-- Tiga tab: Beranda, Favorit, About Me.
-- Pencarian umur ke tahun lahir dengan rentang katalog 2001–2025 dan maksimum tiga hasil.
-- Favorite CRUD lokal/server, catatan pribadi, konfirmasi hapus, serta sinkronisasi outbox.
-- Anonymous Auth dan RLS; tidak ada secret/service-role key di frontend.
-- Installable PWA dengan app shell offline.
+- Lima tab: Era, Extinct Database, EraGuessr, Favorit, About Me.
+- Timeline vertikal 2001–2026; data resmi mencakup 2001–2025.
+- Detail spesies pada `/animal/:id`.
+- Database mendukung pencarian, filter tahun, dan CRUD data pribadi lokal.
+- EraGuessr menampilkan maksimal tiga spesies dengan tahun yang cocok.
+- PWA, katalog network-first yang dicache, favorit serta data pribadi lokal.
+- API read publik; endpoint tulis katalog memerlukan token admin server-side.
 
-## Deploy
+## Build dan test
 
-Atur `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` di Vercel, pastikan schema/RLS dan katalog sudah disiapkan, lalu jalankan build `npm run build` dengan output `dist`.
+```powershell
+npm test
+npm run build
+```
+
+Panduan API, deployment, dan offline ada di folder [docs/](./docs/).

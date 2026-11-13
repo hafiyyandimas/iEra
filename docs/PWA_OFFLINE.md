@@ -1,7 +1,14 @@
-# PWA dan mode offline
+# PWA dan offline
 
-Vite PWA menghasilkan manifest dan service worker. App shell, ikon, fallback gambar, JavaScript, dan CSS dimasukkan ke precache. Katalog mempunyai runtime cache network-first yang terbatas; favorit tidak pernah disimpan dalam cache service worker.
+Manifest, ikon, `vite-plugin-pwa`, serta alur update Modul 5 dipertahankan. App shell dan asset statis diprecache. React Router memakai fallback `index.html` sehingga route aplikasi dapat dibuka ulang setelah app shell tersimpan.
 
-Dataset berhasil diambil juga disimpan terpisah di localStorage agar pencarian dapat dilakukan offline setelah kunjungan online. Favorit/catatan memiliki cache lokal serta outbox; perubahan lokal tidak mengaku sudah tersinkron sampai endpoint Supabase menerima operasi. Outbox diproses berurutan menggunakan upsert berkunci unik dan dihapus per operasi setelah respons berhasil.
+GET katalog `/api/animals` dan `/api/animals/year/:year` memakai strategi **NetworkFirst**, cache dibatasi hingga 30 respons selama tujuh hari, dan hanya respons HTTP 200 yang dicache. Favorit dan hewan pribadi tidak memakai HTTP cache; keduanya disimpan pada localStorage terpisah. Cache katalog lokal membantu timeline menampilkan data yang pernah dimuat.
 
-Untuk pengujian install dan service worker, gunakan build preview/hosting HTTPS (localhost juga memenuhi syarat secure context). Setelah kunjungan pertama, putuskan jaringan untuk memeriksa app shell, pencarian dari cache, dan perubahan favorit tertunda. Sambungkan kembali untuk memeriksa sinkronisasi.
+Offline:
+
+- Route app shell dan data lokal dapat tersedia setelah kunjungan online pertama.
+- Katalog baru membutuhkan API; kunjungan offline pertama menampilkan pesan yang sesuai.
+- Favorit/catatan pribadi dan data spesies pribadi dapat dibaca/diedit offline.
+- Tidak ada sinkronisasi server atau klaim sinkronisasi antarperangkat.
+
+Untuk pengujian install dan service worker, gunakan HTTPS atau `localhost`, buka aplikasi online lebih dulu, lalu uji reload route dan koleksi saat offline.
