@@ -7,7 +7,7 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 export default function AuthDialog({ open, onClose }) {
   const { isConfigured, signIn, signUp } = useAuth();
   const [mode, setMode] = useState('login');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -22,13 +22,13 @@ export default function AuthDialog({ open, onClose }) {
     setMessage('');
     try {
       if (mode === 'register') {
-        const result = await signUp(email.trim(), password);
+        const result = await signUp(username, password);
         if (result.needsEmailConfirmation) {
-          setMessage('Akun dibuat. Periksa email untuk verifikasi sebelum masuk.');
+          setMessage('Pendaftaran tertahan: matikan konfirmasi email pada pengaturan Email di Supabase Auth, lalu coba lagi.');
           return;
         }
       } else {
-        await signIn(email.trim(), password);
+        await signIn(username, password);
       }
       closeDialog();
     } catch (submitError) {
@@ -75,19 +75,24 @@ export default function AuthDialog({ open, onClose }) {
           <>
             <p className="mb-4 text-sm text-muted">
               {mode === 'login'
-                ? 'Masuk sebagai user atau admin.'
-                : 'Akun baru otomatis mendapat role user. Role admin hanya dapat diberikan melalui SQL Supabase.'}
+                ? 'Masuk dengan username dan password.'
+                : 'Akun baru otomatis mendapat role user. Username harus unik; password tidak dapat dipulihkan lewat email.'}
             </p>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="auth-email" className="mb-1.5 block text-sm font-medium">Email</label>
+                <label htmlFor="auth-username" className="mb-1.5 block text-sm font-medium">Username</label>
                 <input
-                  id="auth-email"
-                  type="email"
-                  autoComplete="email"
+                  id="auth-username"
+                  type="text"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck="false"
+                  minLength={3}
+                  maxLength={24}
+                  pattern="[A-Za-z0-9_]{3,24}"
                   required
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
                   className="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage"
                 />
               </div>

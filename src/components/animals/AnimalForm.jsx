@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import Button from '../ui/Button.jsx';
 
@@ -41,9 +42,11 @@ function slugify(value) {
 export default function AnimalForm({ onClose, onSubmit }) {
   const [values, setValues] = useState(emptyForm);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (saving) return;
     const year = Number(values.extinction_year);
     if (!Number.isInteger(year) || year < 2001 || year > 2025) {
       setError('Tahun harus berupa angka bulat antara 2001 dan 2025.');
@@ -63,26 +66,32 @@ export default function AnimalForm({ onClose, onSubmit }) {
     const speciesSlug = slugify(values.scientific_name || values.common_name)
       .slice(0, 180)
       .replace(/-+$/g, '');
-    onSubmit({
-      ...values,
-      slug: `${speciesSlug || `species-${Date.now()}`}-${year}`,
-      extinction_year: year,
-      year_is_estimated: Boolean(values.year_is_estimated),
-      description: values.description.trim()
-    });
+    setSaving(true);
+    try {
+      await onSubmit({
+        ...values,
+        slug: `${speciesSlug || `species-${Date.now()}`}-${year}`,
+        extinction_year: year,
+        year_is_estimated: Boolean(values.year_is_estimated),
+        description: values.description.trim()
+      });
+      setError('');
+    } catch (submitError) {
+      setError(submitError.message || 'Data gagal disimpan. Periksa koneksi, lalu coba lagi.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/45 p-0 sm:items-center sm:p-4" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose();
-    }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="animal-form-title" className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-paper sm:rounded-3xl">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/45 p-4">
+      <section role="dialog" aria-modal="true" aria-labelledby="animal-form-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl bg-paper">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-white px-5 py-4">
           <div>
             <h2 id="animal-form-title" className="font-bold">Tambah ke katalog resmi</h2>
             <p className="mt-1 text-xs text-muted">Data ini akan tersimpan di katalog iEra.</p>
           </div>
-          <button type="button" aria-label="Tutup form" onClick={onClose} className="grid size-10 place-items-center rounded-xl text-muted hover:bg-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest"><X size={19} /></button>
+          <button type="button" aria-label="Tutup form" onClick={onClose} disabled={saving} className="grid size-10 place-items-center rounded-xl text-muted hover:bg-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest disabled:opacity-50"><X size={19} /></button>
         </header>
         <form className="space-y-4 p-5" onSubmit={handleSubmit}>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -112,13 +121,14 @@ export default function AnimalForm({ onClose, onSubmit }) {
             <input type="checkbox" checked={Boolean(values.year_is_estimated)} onChange={(event) => setValues((current) => ({ ...current, year_is_estimated: event.target.checked }))} className="mt-0.5 accent-forest" />
             <span>Tahun kepunahan adalah perkiraan</span>
           </label>
-          {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+          {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
           <div className="flex justify-end gap-2 border-t border-line pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
-            <Button type="submit">Simpan ke katalog</Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={saving}>Batal</Button>
+            <Button type="submit" disabled={saving}>{saving ? 'Menyimpan…' : 'Simpan ke katalog'}</Button>
           </div>
         </form>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

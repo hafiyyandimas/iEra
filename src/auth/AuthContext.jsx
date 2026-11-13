@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../services/supabaseClient.js';
+import { normalizeUsername, usernameToAuthEmail } from './username.js';
 
 const AuthContext = createContext(null);
 const configurationMessage = 'Autentikasi belum dikonfigurasi. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY.';
@@ -26,14 +27,16 @@ export function AuthProvider({ children }) {
     try {
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, username')
         .eq('id', nextSession.user.id)
         .single();
       if (profileError) throw profileError;
       if (!['user', 'admin'].includes(data?.role)) {
         throw new Error('Role akun tidak valid. Hubungi administrator.');
       }
-      if (requestId.current === currentRequest) setProfile({ role: data.role });
+      if (requestId.current === currentRequest) {
+        setProfile({ role: data.role, username: data.username || nextSession.user.user_metadata?.username || '' });
+      }
     } catch (profileLoadError) {
       if (requestId.current === currentRequest) {
         setError(`Profil akun tidak dapat dimuat: ${profileLoadError.message}`);
@@ -78,15 +81,24 @@ export function AuthProvider({ children }) {
     };
   }, [applySession]);
 
-  const signIn = useCallback(async (email, password) => {
+  const signIn = useCallback(async (value, password) => {
     if (!supabase) throw new Error(configurationMessage);
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const username = normalizeUsername(value);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: usernameToAuthEmail(username),
+      password
+    });
     if (signInError) throw signInError;
   }, []);
 
-  const signUp = useCallback(async (email, password) => {
+  const signUp = useCallback(async (value, password) => {
     if (!supabase) throw new Error(configurationMessage);
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    const username = normalizeUsername(value);
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: usernameToAuthEmail(username),
+      password,
+      options: { data: { username } }
+    });
     if (signUpError) throw signUpError;
     return { needsEmailConfirmation: !data.session };
   }, []);

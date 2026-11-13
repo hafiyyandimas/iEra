@@ -47,7 +47,7 @@ export default function AuthControl() {
 
       {user && menuOpen && (
         <div className="absolute right-0 top-full z-40 mt-2 w-64 rounded-2xl border border-line bg-white p-3 shadow-lg">
-          <p className="truncate text-sm font-semibold">{user.email}</p>
+          <p className="truncate text-sm font-semibold">@{profile?.username || user.user_metadata?.username || 'akun'}</p>
           <p className="mt-1 text-xs text-muted">Role: {profile?.role || (loading ? 'memuat…' : 'belum tersedia')}</p>
           {(error || signOutError) && <p role="alert" className="mt-2 text-xs text-red-700">{signOutError || error}</p>}
           <Button variant="ghost" className="mt-3 min-h-9 w-full justify-start px-2 text-xs" onClick={handleSignOut}>

@@ -4,6 +4,8 @@ import { createServer } from 'node:http';
 import app from '../src/app.js';
 import vercelHandler from '../../api/index.js';
 import { createRequireAdmin } from '../src/middleware/requireAdmin.js';
+import { getAllowedOrigins, isRequestOriginAllowed, normalizeOrigin } from '../src/config/cors.js';
+import { normalizeUsername, usernameToAuthEmail } from '../../src/auth/username.js';
 
 async function withServer(run) {
   const server = app.listen(0);
@@ -33,6 +35,41 @@ test('health endpoint responds without database configuration', async () => {
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { success: true, status: 'ok' });
   });
+});
+
+test('same-origin API writes are not rejected by the CORS allowlist', async () => {
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/animals`, {
+      method: 'POST',
+      headers: { Origin: baseUrl, 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    assert.equal(response.status, 401);
+    assert.equal((await response.json()).error, 'Login admin diperlukan.');
+  });
+});
+
+test('CORS normalizes configured origins and rejects unrelated origins', async () => {
+  assert.equal(normalizeOrigin('https://iera.example/'), 'https://iera.example');
+  const allowedOrigins = getAllowedOrigins('https://iera.example/, http://localhost:5173');
+  assert.deepEqual(allowedOrigins, ['https://iera.example', 'http://localhost:5173']);
+  assert.equal(isRequestOriginAllowed('https://iera.example/', '', allowedOrigins), true);
+  assert.equal(isRequestOriginAllowed('https://attacker.example', 'https://iera.example', allowedOrigins), false);
+
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/animals`, {
+      headers: { Origin: 'https://unlisted.example' }
+    });
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).error, 'Origin tidak diizinkan oleh CORS.');
+  });
+});
+
+test('username login aliases are normalized and reject invalid usernames', () => {
+  assert.equal(normalizeUsername('  Iera_Admin_1 '), 'iera_admin_1');
+  assert.equal(usernameToAuthEmail('Iera_Admin_1'), 'iera_admin_1@users.iera.invalid');
+  assert.throws(() => normalizeUsername('ab'), /Username harus/);
+  assert.throws(() => normalizeUsername('bad-name'), /Username harus/);
 });
 
 test('root Vercel function forwards rewritten health route', async () => {

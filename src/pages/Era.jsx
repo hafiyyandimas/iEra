@@ -3,7 +3,6 @@ import { useAppData } from '../app/AppDataContext.jsx';
 import AnimalCard from '../components/animals/AnimalCard.jsx';
 import ErrorState from '../components/feedback/ErrorState.jsx';
 import LoadingState from '../components/feedback/LoadingState.jsx';
-import EmptyState from '../components/feedback/EmptyState.jsx';
 
 const FIRST_YEAR = 2001;
 const LAST_YEAR = 2026;
@@ -22,7 +21,7 @@ function VerticalYearSlider({ value, onChange }) {
         step="1"
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-full min-h-0 w-8 cursor-pointer accent-forest [writing-mode:vertical-lr] [direction:rtl]"
+        className="h-full min-h-0 w-8 cursor-pointer accent-forest [writing-mode:vertical-lr]"
       />
       <span className="text-[10px] text-muted">2026</span>
     </aside>
@@ -99,7 +98,7 @@ export default function EraPage() {
       <div className="grid grid-cols-[minmax(0,1fr)_46px] gap-3 sm:gap-6">
         <div className="min-w-0">
           {loading && animals.length === 0 && <LoadingState label="Memuat katalog spesies…" />}
-          {!loading && animals.length === 0 && !error && <EmptyState title="Katalog belum berisi data" description="Spesies yang sudah diverifikasi akan muncul di timeline setelah tersedia melalui API." />}
+          {!loading && animals.length === 0 && !error && <p className="mb-4 text-sm text-muted">Katalog belum berisi data terverifikasi.</p>}
           {years.map((year) => {
             const boundary = year === FIRST_YEAR || year === LAST_YEAR;
             const yearAnimals = grouped.get(year) || [];

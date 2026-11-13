@@ -35,7 +35,7 @@ export default function ExtinctDatabasePage() {
       setFormOpen(false);
       notify({ type: 'success', message: 'Spesies ditambahkan ke katalog resmi.' });
     } catch (saveError) {
-      notify({ type: 'error', message: getApiError(saveError) });
+      throw new Error(getApiError(saveError));
     }
   };
 

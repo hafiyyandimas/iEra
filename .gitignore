@@ -4,7 +4,7 @@ node_modules/
 # Build and test output
 dist/
 coverage/
-
+/database/
 # Local environment
 .env
 .env.local
@@ -28,3 +28,4 @@ ANTISLOP.md
 CLAUDE_REVISION_BRIEF.md
 CLAUDE.md
 PROJECT_STRUCTURE.md
+/docs/
