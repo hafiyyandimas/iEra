@@ -1,32 +1,32 @@
 # Deployment
 
-Frontend dan backend dideploy sebagai dua project terpisah; Supabase tetap menjadi database katalog.
+Frontend dan API berjalan dalam **satu project Vercel** di domain yang sama. Frontend disajikan sebagai aset statis; `/api/*` dan `/health` dijalankan sebagai Vercel Functions. Supabase service-role key hanya digunakan server-side.
 
-## Frontend Vercel
+## Konfigurasi Vercel
 
-- Root Directory: repository root.
+- Import project dari repository dan pilih aplikasi **Vite** (bukan preset `Services`).
+- Root Directory: repository root (`./`).
 - Build command: `npm run build`.
 - Output directory: `dist`.
-- Environment variable: `VITE_API_BASE_URL=https://<domain-backend>/api`.
-- Set the variable in Vercel for the frontend project, then redeploy; Vite embeds it at build time.
+- Runtime: Node.js 20.x.
+- Tambahkan environment variables di project Vercel:
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY` (server-only; jangan gunakan awalan `VITE_`)
+  - `ALLOWED_ORIGIN` (origin deployment frontend, misalnya `https://iera.vercel.app`, tanpa path)
+  - `API_ADMIN_TOKEN` (opsional; token panjang acak untuk endpoint tulis admin)
+- `VITE_API_BASE_URL` tidak wajib untuk deployment satu domain; default frontend adalah `/api`. Jika diatur, gunakan `/api`.
 - Deploy melalui HTTPS agar service worker dan instalasi PWA berfungsi.
 
-## Backend Vercel
+`api/index.js` meneruskan request ke handler Express yang sama dengan deployment backend terpisah. `vercel.json` mengarahkan `/api/*` dan `/health` ke function tersebut serta route SPA ke frontend. `backend/api/index.js` dan `backend/vercel.json` tetap dapat digunakan jika backend ingin dideploy sebagai project terpisah.
 
-- Root Directory: `backend`.
-- Framework/runtime: Node.js Functions.
-- Environment variables server-only:
-  - `SUPABASE_URL`
-  - `SUPABASE_SERVICE_ROLE_KEY`
-  - `API_ADMIN_TOKEN` (token panjang acak; write route tidak aktif bila tidak diatur)
-  - `ALLOWED_ORIGIN` (origin frontend, tanpa path)
-- Pastikan semua route API dapat diakses melalui deployment dan health check `/health` berhasil.
+## Verifikasi
 
-`backend/api/index.js` mengekspor Express app untuk Functions, sementara `backend/src/index.js` menjalankan server lokal. Uji deployment Vercel setelah menentukan root project dan URL backend final; jangan mengasumsikan konfigurasi lokal otomatis berperilaku sama pada serverless.
-
-- Untuk backend Vercel, atur **Root Directory** ke `backend`. Frontend dan backend adalah dua deployment terpisah; URL frontend bukan URL API.
-- Uji `https://<domain-backend>/health` (harus menghasilkan status `ok`) dan `https://<domain-backend>/api/animals` (harus menghasilkan daftar katalog). `/api` saja bukan endpoint yang valid.
-- Jika respons berisi `Endpoint not found.`, cek path yang diminta dan nilai `VITE_API_BASE_URL`: nilainya harus berakhir dengan `/api`—jangan hilangkan segmen itu atau menambahkan `/animals` ke nilainya.
+- Buka `/health`; respons yang diharapkan: `{ "success": true, "status": "ok" }`.
+- Buka `/api/animals`; respons sukses berisi katalog.
+- Jika katalog gagal tetapi `/health` berhasil, periksa environment Supabase dan skema tabel.
+- `SUPABASE_SERVICE_ROLE_KEY` tidak boleh dimasukkan ke frontend atau variabel berawalan `VITE_`.
+- POST/PUT/DELETE ditolak tanpa `API_ADMIN_TOKEN`.
+- Pastikan route SPA dapat dibuka langsung dan direload, serta manifest, service worker, dan offline route berfungsi di HTTPS.
 
 ## Checklist
 

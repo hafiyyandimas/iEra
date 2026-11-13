@@ -27,7 +27,7 @@ npm --prefix backend install
 npm run dev:api
 ```
 
-Frontend berjalan di Vite, API di `http://localhost:3000`. Jika frontend dan backend dideploy terpisah, set `VITE_API_BASE_URL` ke base URL API produksi.
+Frontend berjalan di Vite, API lokal di `http://localhost:3000`. Untuk deployment Vercel satu project, frontend dan API memakai domain yang sama dengan base API `/api`. Jika frontend dan backend sengaja dideploy terpisah, set `VITE_API_BASE_URL` ke base URL API produksi.
 
 ## Database dan katalog
 

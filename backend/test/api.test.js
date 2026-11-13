@@ -1,10 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 import app from '../src/app.js';
+import vercelHandler from '../../api/index.js';
 
 async function withServer(run) {
   const server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  try {
+    await run(`http://127.0.0.1:${address.port}`);
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+}
+
+async function withVercelFunction(run) {
+  const server = createServer(vercelHandler);
+  await new Promise((resolve) => server.listen(0, resolve));
   const address = server.address();
   try {
     await run(`http://127.0.0.1:${address.port}`);
@@ -18,6 +31,17 @@ test('health endpoint responds without database configuration', async () => {
     const response = await fetch(`${baseUrl}/health`);
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { success: true, status: 'ok' });
+  });
+});
+
+test('root Vercel function forwards rewritten health route', async () => {
+  await withVercelFunction(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/index?path=health`);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { success: true, status: 'ok' });
+
+    const invalidYear = await fetch(`${baseUrl}/api/index?path=animals/year/2026`);
+    assert.equal(invalidYear.status, 400);
   });
 });
 
