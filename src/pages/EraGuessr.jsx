@@ -71,7 +71,7 @@ export default function EraGuessrPage() {
               ) : (
                 <EmptyState
                   title="Belum ada spesies tercatat pada tahun ini"
-                  description="Tahun lahir merupakan perkiraan; katalog mencakup tahun 2001–2025."
+                  description="Tahun lahir merupakan perkiraan; katalog mencakup tahun 2001-2025."
                   action={<div className="flex flex-wrap justify-center gap-2"><Button asChild variant="outline"><Link to="/era">Buka Era</Link></Button><Button asChild><Link to="/database">Buka database</Link></Button></div>}
                 />
               )}

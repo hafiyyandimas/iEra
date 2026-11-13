@@ -8,7 +8,7 @@ function displayYear(animal) {
 
 export default function AnimalCard({ animal, isFavorite, onToggleFavorite, compact = false }) {
   return (
-    <article className={`overflow-hidden rounded-2xl border border-line bg-white ${compact ? 'grid grid-cols-[88px_1fr] gap-3 p-3 sm:grid-cols-[112px_1fr]' : 'grid grid-cols-[92px_1fr] gap-4 p-3 sm:grid-cols-[132px_1fr] sm:p-4'}`}>
+    <article className={`overflow-hidden rounded-2xl border border-line bg-white ${compact ? 'era-card-wiggle grid grid-cols-[88px_1fr] gap-3 p-3 sm:grid-cols-[112px_1fr]' : 'grid grid-cols-[92px_1fr] gap-4 p-3 sm:grid-cols-[132px_1fr] sm:p-4'}`}>
       <Link to={`/animal/${encodeURIComponent(animal.id)}`} className="block overflow-hidden rounded-xl bg-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest">
         <img
           src={animal.image_url || '/images/animal-placeholder.svg'}
@@ -38,7 +38,7 @@ export default function AnimalCard({ animal, isFavorite, onToggleFavorite, compa
             </Button>
           )}
         </div>
-        {animal.is_personal && <p className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-900">Data pribadi — belum diverifikasi</p>}
+        {animal.is_personal && <p className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-900">Data pribadi - belum diverifikasi</p>}
         {!compact && animal.description && <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{animal.description}</p>}
       </div>
     </article>

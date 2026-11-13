@@ -10,7 +10,7 @@ export function getBirthYear(age, currentYear = new Date().getFullYear()) {
     return {
       valid: false,
       birthYear,
-      error: `Data hanya tersedia untuk tahun ${DATASET_MIN_YEAR}–${DATASET_MAX_YEAR}.`
+      error: `Data hanya tersedia untuk tahun ${DATASET_MIN_YEAR}-${DATASET_MAX_YEAR}.`
     };
   }
   return { valid: true, birthYear };

@@ -76,7 +76,7 @@ export default function AuthDialog({ open, onClose }) {
             <p className="mb-4 text-sm text-muted">
               {mode === 'login'
                 ? 'Masuk dengan username dan password.'
-                : 'Akun baru otomatis mendapat role user. Username harus unik; password tidak dapat dipulihkan lewat email.'}
+                : 'Akun baru otomatis mendapat role user. Username harus unik.'}
             </p>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>

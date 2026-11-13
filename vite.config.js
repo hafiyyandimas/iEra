@@ -31,7 +31,7 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'images/animal-placeholder.svg', 'offline.html'],
       manifest: {
-        name: 'iEra — Extinct Species Explorer',
+        name: 'iEra - Extinct Species Explorer',
         short_name: 'iEra',
         description: 'Jelajahi spesies punah dan catatan kepunahannya.',
         theme_color: '#f7f8f2',

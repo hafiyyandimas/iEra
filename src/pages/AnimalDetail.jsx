@@ -56,7 +56,7 @@ export default function AnimalDetailPage() {
       <Link to="/database" className="inline-flex items-center gap-2 text-sm font-medium text-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest">
         <ArrowLeft size={16} /> Kembali
       </Link>
-      {animal.is_personal && <p className="inline-flex rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">Data pribadi — belum diverifikasi</p>}
+      {animal.is_personal && <p className="inline-flex rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">Data pribadi - belum diverifikasi</p>}
       <div className="overflow-hidden rounded-3xl border border-line bg-white">
         <img
           src={animal.image_url || '/images/animal-placeholder.svg'}

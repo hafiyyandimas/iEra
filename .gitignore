@@ -1,31 +1,35 @@
-# Dependencies
+# Dependencies and generated output
 node_modules/
-
-# Build and test output
+/backend/node_modules/
 dist/
 coverage/
-/database/
-# Local environment
+
+# Local environment and deployment state
 .env
 .env.local
 .env.*.local
-
-# Local tool data
+/backend/.env
+/backend/.env.local
 /.vercel/
 /supabase/.temp/
 
-# Local-only content
+# Local-only notes and source datasets
 /Note/
 /iera-dataset/
-/backend/node_modules/
-/backend/.env
-/backend/.env.local
+
+# AI assistant instructions and local context
+/AI.md
+/ANTISLOP.md
+/CLAUDE.md
+/CLAUDE_REVISION_BRIEF.md
+/PROJECT_STRUCTURE.md
+/AGENTS.md
+/GEMINI.md
+/CODEX.md
+/.claude/
+/.copilot/
+/.cursor/
+/.github/copilot-instructions.md
 
 # Operating system files
 .DS_Store
-AI.md
-ANTISLOP.md
-CLAUDE_REVISION_BRIEF.md
-CLAUDE.md
-PROJECT_STRUCTURE.md
-/docs/
