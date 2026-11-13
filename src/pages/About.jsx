@@ -15,7 +15,7 @@ export default function AboutPage() {
         <span className="grid size-12 place-items-center rounded-2xl bg-white/10 text-sage"><Leaf size={23} /></span>
         <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-sage">Profil praktikan</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">About Me</h1>
-        <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80">iEra membantu menjelajahi catatan kepunahan spesies, menyimpan favorit, dan membuat koleksi pribadi di perangkat.</p>
+        <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80">iEra membantu menjelajahi catatan kepunahan spesies dan menyimpan favorit secara lokal. Admin dapat menambahkan spesies ke katalog resmi.</p>
       </div>
       <div className="overflow-hidden rounded-3xl border border-line bg-white">
         {details.map(({ label, value, icon: Icon }, index) => (

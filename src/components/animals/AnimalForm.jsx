@@ -25,17 +25,21 @@ const fields = [
   ['region', 'Wilayah', false],
   ['image_url', 'URL gambar', false],
   ['image_alt', 'Teks alternatif gambar', false],
-  ['source_url', 'URL sumber informasi', false],
+  ['source_url', 'URL sumber informasi', true],
   ['image_credit', 'Kredit gambar', false],
   ['image_license', 'Lisensi gambar', false]
 ];
 
-export default function AnimalForm({ initialAnimal, onClose, onSubmit }) {
-  const [values, setValues] = useState(() => ({
-    ...emptyForm,
-    ...initialAnimal,
-    extinction_year: initialAnimal?.extinction_year ?? ''
-  }));
+function slugify(value) {
+  return value.normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export default function AnimalForm({ onClose, onSubmit }) {
+  const [values, setValues] = useState(emptyForm);
   const [error, setError] = useState('');
 
   const handleSubmit = (event) => {
@@ -56,12 +60,15 @@ export default function AnimalForm({ initialAnimal, onClose, onSubmit }) {
       }
     }
     setError('');
+    const speciesSlug = slugify(values.scientific_name || values.common_name)
+      .slice(0, 180)
+      .replace(/-+$/g, '');
     onSubmit({
       ...values,
+      slug: `${speciesSlug || `species-${Date.now()}`}-${year}`,
       extinction_year: year,
       year_is_estimated: Boolean(values.year_is_estimated),
-      description: values.description.trim(),
-      slug: initialAnimal?.slug || `personal-${Date.now()}`
+      description: values.description.trim()
     });
   };
 
@@ -72,8 +79,8 @@ export default function AnimalForm({ initialAnimal, onClose, onSubmit }) {
       <section role="dialog" aria-modal="true" aria-labelledby="animal-form-title" className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-paper sm:rounded-3xl">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-white px-5 py-4">
           <div>
-            <h2 id="animal-form-title" className="font-bold">{initialAnimal ? 'Edit spesies pribadi' : 'Tambah spesies pribadi'}</h2>
-            <p className="mt-1 text-xs text-muted">Data ini hanya disimpan di perangkat dan belum diverifikasi.</p>
+            <h2 id="animal-form-title" className="font-bold">Tambah ke katalog resmi</h2>
+            <p className="mt-1 text-xs text-muted">Data ini akan tersimpan di katalog iEra.</p>
           </div>
           <button type="button" aria-label="Tutup form" onClick={onClose} className="grid size-10 place-items-center rounded-xl text-muted hover:bg-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest"><X size={19} /></button>
         </header>
@@ -81,11 +88,12 @@ export default function AnimalForm({ initialAnimal, onClose, onSubmit }) {
           <div className="grid gap-4 sm:grid-cols-2">
             {fields.map(([name, label, required]) => (
               <div key={name} className={name === 'image_url' || name === 'image_alt' || name === 'source_url' ? 'sm:col-span-2' : ''}>
-                <label htmlFor={`personal-${name}`} className="mb-1.5 block text-sm font-medium">{label}{required ? ' *' : ''}</label>
+                <label htmlFor={`animal-${name}`} className="mb-1.5 block text-sm font-medium">{label}{required ? ' *' : ''}</label>
                 <input
-                  id={`personal-${name}`}
+                  id={`animal-${name}`}
                   required={required}
                   type={name === 'extinction_year' ? 'number' : name.endsWith('_url') ? 'url' : 'text'}
+                  maxLength={200}
                   min={name === 'extinction_year' ? 2001 : undefined}
                   max={name === 'extinction_year' ? 2025 : undefined}
                   step={name === 'extinction_year' ? 1 : undefined}
@@ -97,8 +105,8 @@ export default function AnimalForm({ initialAnimal, onClose, onSubmit }) {
             ))}
           </div>
           <div>
-            <label htmlFor="personal-description" className="mb-1.5 block text-sm font-medium">Deskripsi</label>
-            <textarea id="personal-description" rows={3} maxLength={1000} value={values.description} onChange={(event) => setValues((current) => ({ ...current, description: event.target.value }))} className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage" />
+            <label htmlFor="animal-description" className="mb-1.5 block text-sm font-medium">Deskripsi *</label>
+            <textarea id="animal-description" rows={3} maxLength={5000} required value={values.description} onChange={(event) => setValues((current) => ({ ...current, description: event.target.value }))} className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage" />
           </div>
           <label className="flex items-start gap-3 rounded-xl bg-mist p-3 text-sm">
             <input type="checkbox" checked={Boolean(values.year_is_estimated)} onChange={(event) => setValues((current) => ({ ...current, year_is_estimated: event.target.checked }))} className="mt-0.5 accent-forest" />
@@ -107,7 +115,7 @@ export default function AnimalForm({ initialAnimal, onClose, onSubmit }) {
           {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           <div className="flex justify-end gap-2 border-t border-line pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
-            <Button type="submit">{initialAnimal ? 'Simpan perubahan' : 'Simpan di perangkat'}</Button>
+            <Button type="submit">Simpan ke katalog</Button>
           </div>
         </form>
       </section>

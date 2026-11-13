@@ -18,3 +18,11 @@ export async function fetchAnimal(id) {
   if (!data || typeof data !== 'object') throw new Error('Format detail spesies tidak valid.');
   return data;
 }
+
+export async function createOfficialAnimal(animal, accessToken) {
+  if (!accessToken) throw new Error('Login admin diperlukan.');
+  const response = await apiClient.post('/animals', animal, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  return unwrap(response);
+}

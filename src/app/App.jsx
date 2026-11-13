@@ -8,6 +8,7 @@ import { useFavorites } from '../hooks/useFavorites.js';
 import { useInstallPrompt } from '../hooks/useInstallPrompt.js';
 import { useOnlineStatus } from '../hooks/useOnlineStatus.js';
 import { usePersonalAnimals } from '../hooks/usePersonalAnimals.js';
+import { AuthProvider } from '../auth/AuthContext.jsx';
 import { AppDataContext } from './AppDataContext.jsx';
 import EraPage from '../pages/Era.jsx';
 import ExtinctDatabasePage from '../pages/ExtinctDatabase.jsx';
@@ -52,26 +53,28 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppDataContext.Provider value={value}>
-        <AppShell
-          isOnline={isOnline}
-          install={installPrompt.install}
-          canInstall={installPrompt.canInstall}
-        >
-          <Routes>
-            <Route path="/" element={<Navigate to="/era" replace />} />
-            <Route path="/era" element={<EraPage />} />
-            <Route path="/database" element={<ExtinctDatabasePage />} />
-            <Route path="/guessr" element={<EraGuessrPage />} />
-            <Route path="/favorit" element={<FavoritesPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/animal/:id" element={<AnimalDetailPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </AppShell>
-        <Toast toast={toast} onDismiss={() => setToast(null)} />
-        <UpdatePrompt />
-      </AppDataContext.Provider>
+      <AuthProvider>
+        <AppDataContext.Provider value={value}>
+          <AppShell
+            isOnline={isOnline}
+            install={installPrompt.install}
+            canInstall={installPrompt.canInstall}
+          >
+            <Routes>
+              <Route path="/" element={<Navigate to="/era" replace />} />
+              <Route path="/era" element={<EraPage />} />
+              <Route path="/database" element={<ExtinctDatabasePage />} />
+              <Route path="/guessr" element={<EraGuessrPage />} />
+              <Route path="/favorit" element={<FavoritesPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/animal/:id" element={<AnimalDetailPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </AppShell>
+          <Toast toast={toast} onDismiss={() => setToast(null)} />
+          <UpdatePrompt />
+        </AppDataContext.Provider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

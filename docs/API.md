@@ -4,7 +4,7 @@
 
 Jalankan `npm --prefix backend install`, isi `backend/.env`, kemudian `npm run dev:api` dari root. Endpoint lokal tersedia di `http://localhost:3000/api`; health check ada di `/health`.
 
-Frontend menggunakan Axios melalui `VITE_API_BASE_URL`. Komponen React tidak berkomunikasi langsung dengan Supabase.
+Katalog resmi diakses melalui Axios (`VITE_API_BASE_URL`). Supabase Auth di browser memakai anon/publishable key untuk sesi akun dan membaca profil role dengan RLS.
 
 ## Endpoint
 
@@ -22,9 +22,10 @@ Respons sukses berbentuk `{ "success": true, "data": ... }`; error berbentuk `{ 
 ## Keamanan
 
 - `SUPABASE_SERVICE_ROLE_KEY` hanya disimpan sebagai environment variable backend. Jangan gunakan awalan `VITE_`, jangan masukkan ke frontend, dan jangan commit nilai nyata.
-- GET katalog dilayani backend dengan kredensial server; RLS tetap aktif pada tabel.
-- `POST`, `PUT`, dan `DELETE` memerlukan `Authorization: Bearer <API_ADMIN_TOKEN>`. Jika token tidak disetel, write route tidak tersedia.
+- Signup melalui Supabase Auth selalu membuat profil ber-role `user`; role dibaca dari `public.profiles`, bukan dari user metadata.
+- GET katalog dilayani backend dengan kredensial server. Service-role key melewati RLS, sehingga route tulis memeriksa role secara eksplisit di server.
+- `POST`, `PUT`, dan `DELETE` memerlukan access token Supabase pada `Authorization: Bearer <access_token>` dan profil dengan role `admin`.
 - `ALLOWED_ORIGIN` membatasi origin browser; untuk beberapa origin gunakan daftar dipisahkan koma.
-- Favorit dan data pribadi browser tidak dikirim ke API.
+- Favorit tetap tersimpan lokal dan tidak dikirim ke API.
 
-Gunakan token admin hanya dari Postman/alat administratif tepercaya. Tidak ada form admin pada frontend.
+Promosikan akun tepercaya ke role `admin` secara manual melalui SQL Editor Supabase; tidak ada opsi memilih role saat registrasi. UI tambah katalog resmi hanya tampil untuk admin, dan API tetap memverifikasi role server-side.

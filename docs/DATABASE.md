@@ -8,6 +8,7 @@ Supabase menyimpan katalog resmi saja. Skema baru menggunakan `extinction_year I
 2. Impor data terverifikasi melalui Table Editor. Paket `database/seed_animals.csv` berisi tiga record dataset lama yang sudah dipetakan ke skema baru. `database/seed_template.csv` hanya berisi header untuk record selanjutnya.
 3. Jangan menyertakan `id`, `created_at`, atau `updated_at`; database mengisinya.
 4. Verifikasi setiap tahun, status perkiraan, URL sumber, kredit, dan lisensi sebelum impor.
+5. Supabase Auth membuat role `user` otomatis saat registrasi; favorit tetap tersimpan lokal di browser.
 
 ## Migrasi dari Modul 5
 
@@ -22,5 +23,17 @@ Jika migrasi sudah mempertahankan spesies dari seed lama, jangan impor `seed_ani
 - Tahun resmi yang didukung 2001–2025. Tahun 2026 hanya batas visual timeline.
 - Jangan mengisi tahun dengan data rekaan.
 - Tandai tahun perkiraan dan jelaskan ketidakpastian pada deskripsi.
-- Entri spesies pribadi disimpan di browser, tidak masuk ke `animals`.
+- Hanya admin yang dapat menambah katalog resmi; API juga memeriksa role admin, bukan hanya menyembunyikan tombol di UI.
+- Jalankan `database/migration_add_auth_roles.sql` pada SQL Editor sebelum registrasi, atau setelahnya untuk membuat profil `user` bagi akun lama. File ini aman dijalankan ulang.
+- Untuk menjadikan akun sebagai admin, ubah email contoh lalu jalankan query manual ini di Supabase SQL Editor:
+
+```sql
+update public.profiles p
+set role = 'admin'
+from auth.users u
+where p.id = u.id and lower(u.email) = lower('admin@example.com');
+```
+
+- Registrasi tidak menerima role dari pengguna; hanya query tepercaya di Supabase yang dapat menaikkan role menjadi `admin`.
+- Fitur favorit dan catatan tetap lokal; perubahan role tidak mengunggah data lokal ke server.
 - Aktifkan RLS. Jangan memberi role `anon` akses tulis.

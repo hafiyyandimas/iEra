@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import app from '../src/app.js';
 import vercelHandler from '../../api/index.js';
+import { createRequireAdmin } from '../src/middleware/requireAdmin.js';
 
 async function withServer(run) {
   const server = app.listen(0);
@@ -53,20 +54,67 @@ test('year endpoint rejects years outside the supported catalog range', async ()
   });
 });
 
-test('catalog write routes require the server-side admin token', async () => {
-  const originalToken = process.env.API_ADMIN_TOKEN;
-  process.env.API_ADMIN_TOKEN = 'test-only-admin-token';
-  try {
-    await withServer(async (baseUrl) => {
-      const response = await fetch(`${baseUrl}/api/animals`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
-      assert.equal(response.status, 401);
+test('catalog write routes require an authenticated admin', async () => {
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/animals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
     });
-  } finally {
-    if (originalToken === undefined) delete process.env.API_ADMIN_TOKEN;
-    else process.env.API_ADMIN_TOKEN = originalToken;
-  }
+    assert.equal(response.status, 401);
+  });
+});
+
+function adminMiddlewareResponse() {
+  return {
+    statusCode: 200,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(body) {
+      this.body = body;
+      return this;
+    }
+  };
+}
+
+function makeAdminMiddleware(role) {
+  return createRequireAdmin(() => ({
+    auth: {
+      async getUser(token) {
+        return { data: { user: token === 'valid-token' ? { id: 'user-id' } : null }, error: null };
+      }
+    },
+    from(table) {
+      assert.equal(table, 'profiles');
+      const query = {
+        select() { return query; },
+        eq(column, value) {
+          assert.equal(column, 'id');
+          assert.equal(value, 'user-id');
+          return query;
+        },
+        async maybeSingle() { return { data: role ? { role } : null, error: null }; }
+      };
+      return query;
+    }
+  }));
+}
+
+test('authenticated user role cannot write the official catalog', async () => {
+  const middleware = makeAdminMiddleware('user');
+  const response = adminMiddlewareResponse();
+  await middleware({ get: () => 'Bearer valid-token' }, response, () => assert.fail('User role must not pass.'));
+  assert.equal(response.statusCode, 403);
+});
+
+test('admin role is accepted by the catalog write guard', async () => {
+  const middleware = makeAdminMiddleware('admin');
+  const response = adminMiddlewareResponse();
+  let nextCalled = false;
+  const request = { get: () => 'Bearer valid-token' };
+  await middleware(request, response, () => { nextCalled = true; });
+  assert.equal(nextCalled, true);
+  assert.equal(request.authUser.id, 'user-id');
 });
