@@ -3,8 +3,8 @@
 @theme {
   --color-paper: #f7f8f2;
   --color-white: #ffffff;
-  --color-mist: #edf1e4;
-  --color-sage: #d9e7ae;
+  --color-mist:  #edf1e4;
+  --color-sage:  #d9e7ae;
   --color-sage-dark: #c9da91;
   --color-forest: #204b37;
   --color-forest-dark: #173c2b;
@@ -39,9 +39,108 @@ button, input, textarea { font: inherit; }
   70% { transform: rotate(0.35deg) translateX(1px); }
 }
 
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes enter-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.4); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes node-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(32 75 55 / 0.35); }
+  100% { box-shadow: 0 0 0 10px rgb(32 75 55 / 0); }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes tab-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes tab-pop {
+  0% { transform: translateY(3px) scale(0.88); }
+  60% { transform: translateY(-2px) scale(1.08); }
+  100% { transform: none; }
+}
+
 .guessr-results-enter {
   animation: guessr-results-enter 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+.page-enter { animation: page-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.enter-up {
+  animation: enter-up 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(min(var(--i, 0), 8) * 50ms);
+}
+
+.backdrop-enter { animation: fade-in 200ms ease-out both; }
+.dialog-enter { animation: dialog-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.toast-enter { animation: toast-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.heart-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: heart-pop 460ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.node-pulse { animation: node-pulse 1.8s ease-out infinite; }
+.float-soft { animation: float-soft 4.5s ease-in-out infinite; }
+.ring-spin { animation: ring-spin 120s linear infinite; transform-origin: center; }
+.tab-bar { transform-origin: center; animation: tab-bar 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.tab-pop { animation: tab-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+.skeleton {
+  background: linear-gradient(100deg, var(--color-mist) 30%, #f6f8ee 50%, var(--color-mist) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Scroll reveal: toggled by the Reveal component. */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-visible { opacity: 1; transform: none; }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .era-card-wiggle:hover,
@@ -58,4 +157,6 @@ button, input, textarea { font: inherit; }
     transition-duration: 0.01ms !important;
   }
   .guessr-results-enter { animation: none; }
+  .node-pulse, .float-soft, .ring-spin, .skeleton { animation: none; }
+  .reveal { opacity: 1; transform: none; }
 }

@@ -14,10 +14,10 @@ export default function ConfirmDialog({ open, title, description, onConfirm, onC
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" role="presentation" onMouseDown={(event) => {
+    <div className="backdrop-enter fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onCancel();
     }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
+      <section role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="dialog-enter w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
         <div className="mb-4 grid size-11 place-items-center rounded-full bg-red-50 text-red-700"><AlertTriangle size={20} /></div>
         <h2 id="confirm-title" className="text-lg font-bold text-ink">{title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>

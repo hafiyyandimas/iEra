@@ -54,7 +54,9 @@ Untuk reset total, `database/reset_iera.sql` menghapus katalog, profil, dan selu
 
 ## Environment variables
 
-Frontend:
+Pengelompokan berikut menunjukkan variabel yang dipakai frontend dan backend, bukan dua deployment. Di Vercel, semua variabel diatur pada **project yang sama**. Secara lokal, simpan variabel frontend di `.env.local` pada root dan variabel backend di `backend/.env`, karena keduanya berjalan pada proses yang berbeda.
+
+Frontend (nilai `VITE_` masuk ke bundle browser, jadi jangan simpan secret di sini):
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api
@@ -62,7 +64,7 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-or-publishable-key
 ```
 
-Backend:
+Backend (khusus server, tidak diekspos ke browser):
 
 ```env
 PORT=3000
@@ -71,7 +73,7 @@ SUPABASE_SERVICE_ROLE_KEY=server-only-key
 ALLOWED_ORIGIN=http://localhost:5173
 ```
 
-Di Vercel, atur variabel frontend dan backend pada project yang sama. Pada production, frontend menggunakan API relatif `/api`. `SUPABASE_SERVICE_ROLE_KEY` harus tetap menjadi environment variable server dan tidak boleh memakai awalan `VITE_`.
+Pada Vercel, tambahkan kedua kelompok variabel di **Settings → Environment Variables** pada project yang sama. Untuk production same-origin, biarkan `VITE_API_BASE_URL` tidak diatur agar frontend memakai `/api`. `SUPABASE_SERVICE_ROLE_KEY` harus tetap menjadi environment variable server dan tidak boleh memakai awalan `VITE_`.
 
 ## Routes
 

@@ -53,12 +53,12 @@ export default function AuthDialog({ open, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/45 p-4"
+      className="backdrop-enter fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/45 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) closeDialog();
       }}
     >
-      <section role="dialog" aria-modal="true" aria-labelledby="auth-dialog-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl bg-paper p-5 shadow-xl sm:p-6">
+      <section role="dialog" aria-modal="true" aria-labelledby="auth-dialog-title" className="dialog-enter max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl bg-paper p-5 shadow-xl sm:p-6">
         <header className="mb-5 flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-forest">Akun iEra</p>

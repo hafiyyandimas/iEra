@@ -11,7 +11,7 @@ export default function UpdatePrompt() {
   }, []);
   if (!updateAction) return null;
   return (
-    <div className="fixed bottom-24 left-4 right-4 z-40 mx-auto flex max-w-lg items-center justify-between gap-3 rounded-2xl border border-line bg-white p-3 shadow-lg">
+    <div className="toast-enter fixed bottom-24 left-4 right-4 z-40 mx-auto flex max-w-lg items-center justify-between gap-3 rounded-2xl border border-line bg-white p-3 shadow-lg">
       <p className="text-sm text-ink">Versi baru iEra siap digunakan.</p>
       <Button className="min-h-9 px-3 text-xs" onClick={updateAction}><RefreshCw size={14} /> Perbarui</Button>
     </div>

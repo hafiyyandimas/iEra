@@ -57,8 +57,8 @@ export default function FavoritesPage() {
       {favoriteError && <ErrorState message={favoriteError} />}
       {favoriteItems.length ? (
         <div className="grid gap-4">
-          {favoriteItems.map(({ favorite, animal }) => (
-            <article key={favorite.animalId} className="rounded-2xl border border-line bg-white p-3 sm:p-4">
+          {favoriteItems.map(({ favorite, animal }, index) => (
+            <article key={favorite.animalId} style={{ '--i': index }} className="enter-up rounded-2xl border border-line bg-white p-3 sm:p-4">
               {animal ? <AnimalCard animal={animal} isFavorite onToggleFavorite={() => setDeleteTarget(favorite)} /> : (
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm text-muted">Spesies favorit tidak tersedia dalam katalog lokal.</p>

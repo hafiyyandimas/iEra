@@ -84,8 +84,8 @@ export default function AnimalForm({ onClose, onSubmit }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/45 p-4">
-      <section role="dialog" aria-modal="true" aria-labelledby="animal-form-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl bg-paper">
+    <div className="backdrop-enter fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/45 p-4">
+      <section role="dialog" aria-modal="true" aria-labelledby="animal-form-title" className="dialog-enter max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl bg-paper">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-white px-5 py-4">
           <div>
             <h2 id="animal-form-title" className="font-bold">Tambah ke katalog resmi</h2>

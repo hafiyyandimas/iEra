@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { useAppData } from '../app/AppDataContext.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import AnimalCard from '../components/animals/AnimalCard.jsx';
@@ -7,7 +7,7 @@ import AnimalForm from '../components/animals/AnimalForm.jsx';
 import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/feedback/EmptyState.jsx';
 import ErrorState from '../components/feedback/ErrorState.jsx';
-import LoadingState from '../components/feedback/LoadingState.jsx';
+import SkeletonCards from '../components/feedback/SkeletonCards.jsx';
 import { getApiError } from '../services/apiClient.js';
 import { createOfficialAnimal } from '../services/animalService.js';
 
@@ -56,12 +56,17 @@ export default function ExtinctDatabasePage() {
       </header>
 
       <div className="grid gap-3 sm:grid-cols-[1fr_180px]">
-        <label className="flex min-h-12 items-center gap-2 rounded-xl border border-line bg-white px-3 focus-within:border-forest focus-within:ring-2 focus-within:ring-sage">
+        <label className="flex min-h-12 items-center gap-2 rounded-xl border border-line bg-white px-3 transition-shadow focus-within:border-forest focus-within:ring-2 focus-within:ring-sage">
           <Search size={17} className="shrink-0 text-muted" />
           <span className="sr-only">Cari nama umum atau nama ilmiah</span>
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama umum atau ilmiah…" className="w-full bg-transparent text-sm outline-none" />
+          {search && (
+            <button type="button" aria-label="Hapus pencarian" onClick={() => setSearch('')} className="grid size-7 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-mist hover:text-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest">
+              <X size={15} />
+            </button>
+          )}
         </label>
-        <label className="flex min-h-12 items-center gap-2 rounded-xl border border-line bg-white px-3 text-sm focus-within:border-forest focus-within:ring-2 focus-within:ring-sage">
+        <label className="flex min-h-12 items-center gap-2 rounded-xl border border-line bg-white px-3 text-sm transition-shadow focus-within:border-forest focus-within:ring-2 focus-within:ring-sage">
           <span className="sr-only">Filter tahun kepunahan</span>
           <select value={year} onChange={(event) => setYear(event.target.value)} className="w-full bg-transparent text-ink outline-none">
             <option value="">Semua tahun</option>
@@ -70,12 +75,21 @@ export default function ExtinctDatabasePage() {
         </label>
       </div>
 
+      {!loading && animals.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted" aria-live="polite">
+          <p>Menampilkan <strong className="font-semibold tabular-nums text-forest">{entries.length}</strong> dari <span className="tabular-nums">{animals.length}</span> spesies</p>
+          {(search || year) && (
+            <button type="button" onClick={() => { setSearch(''); setYear(''); }} className="rounded-full bg-mist px-3 py-1 font-medium text-forest transition-colors hover:bg-sage focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest">Reset filter</button>
+          )}
+        </div>
+      )}
+
       {error && <ErrorState message={error} onRetry={reload} />}
-      {loading && animals.length === 0 ? <LoadingState label="Memuat database…" /> : entries.length ? (
-        <div className="grid gap-3 lg:grid-cols-2">
-          {entries.map((animal) => (
+      {loading && animals.length === 0 ? <SkeletonCards count={4} label="Memuat database…" /> : entries.length ? (
+        <div key={`${search}|${year}`} className="grid gap-3 lg:grid-cols-2">
+          {entries.map((animal, index) => (
             <div key={animal.id}>
-              <AnimalCard animal={animal} isFavorite={favoriteIds.has(animal.id)} onToggleFavorite={handleFavorite} />
+              <AnimalCard animal={animal} index={index} isFavorite={favoriteIds.has(animal.id)} onToggleFavorite={handleFavorite} />
             </div>
           ))}
         </div>
