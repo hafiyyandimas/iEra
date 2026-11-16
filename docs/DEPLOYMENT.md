@@ -17,8 +17,6 @@ Frontend dan API dapat berjalan dalam satu project Vercel di domain yang sama. F
 
 Frontend build:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
 - Opsional `VITE_API_BASE_URL`; biarkan kosong untuk API same-origin.
 
 Server:
@@ -29,12 +27,13 @@ Server:
 
 Untuk deployment lintas domain, `ALLOWED_ORIGIN` berisi origin frontend yang diizinkan. Pisahkan beberapa origin dengan koma. Jangan pernah memberi awalan `VITE_` pada service-role key atau commit file environment berisi nilai nyata.
 
-## Supabase Auth
+## Akun iEra
 
-- Jalankan `database/schema.sql` pada database baru.
-- Aktifkan provider Email dan matikan konfirmasi email. Aplikasi memakai alias username `@users.iera.invalid`, yang tidak dapat menerima email.
-- Pemulihan password lewat email tidak tersedia.
-- Akun baru mendapat role `user`. Promosikan admin secara manual melalui `public.profiles`.
+- Jalankan `database/schema.sql` pada database baru atau `database/migration_username_password_auth.sql` pada database lama.
+- Auth iEra disediakan backend dengan username dan password; Supabase Auth dan provider Email tidak digunakan.
+- Cookie sesi HttpOnly membutuhkan HTTPS di production.
+- Akun baru mendapat role `user`. Promosikan admin secara manual melalui `public.app_users`.
+- Password akun lama tidak dapat dimigrasikan; pengguna perlu daftar ulang dan role admin perlu dipromosikan kembali.
 
 ## Pengembangan lokal
 

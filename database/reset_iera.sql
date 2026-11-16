@@ -1,19 +1,18 @@
 -- DESTRUCTIVE: run only when this Supabase project is dedicated to iEra.
--- Deletes the official catalog, legacy favorites table, profiles, all
--- Supabase Auth users, and policies/triggers attached to these tables.
+-- Deletes the official catalog, favorites, and iEra account/session tables.
 -- Then recreates the current iEra schema.
--- This does not delete Supabase Storage objects, project settings, or API keys.
+-- Legacy Supabase Auth users are not deleted.
 
 begin;
 
 drop trigger if exists iera_create_profile_on_signup on auth.users;
 drop table if exists public.favorites;
 drop table if exists public.animals;
+drop table if exists public.auth_sessions;
+drop table if exists public.app_users;
 drop table if exists public.profiles;
 drop function if exists public.set_animals_updated_at();
 drop function if exists public.handle_new_auth_user();
-
-delete from auth.users;
 
 create extension if not exists pgcrypto;
 
@@ -60,50 +59,29 @@ for each row execute function public.set_animals_updated_at();
 alter table public.animals enable row level security;
 revoke all on table public.animals from anon, authenticated;
 
-create table public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  username text,
+create table public.app_users (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique
+    constraint app_users_username_check check (username ~ '^[a-z0-9_]{3,24}$'),
+  password_hash text not null,
   role text not null default 'user'
-    constraint profiles_role_check check (role in ('user', 'admin')),
+    constraint app_users_role_check check (role in ('user', 'admin')),
   created_at timestamptz not null default now()
 );
 
-create unique index profiles_username_lower_idx
-  on public.profiles (lower(username))
-  where username is not null;
+create table public.auth_sessions (
+  token_hash text primary key,
+  user_id uuid not null references public.app_users (id) on delete cascade,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
 
-create function public.handle_new_auth_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  new_username text;
-begin
-  new_username := lower(trim(new.raw_user_meta_data ->> 'username'));
-  if new_username is null or new_username !~ '^[a-z0-9_]{3,24}$' then
-    raise exception 'A valid username is required.';
-  end if;
+create index auth_sessions_user_id_idx on public.auth_sessions (user_id);
+create index auth_sessions_expires_at_idx on public.auth_sessions (expires_at);
 
-  insert into public.profiles (id, username, role)
-  values (new.id, new_username, 'user')
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
-create trigger iera_create_profile_on_signup
-after insert on auth.users
-for each row execute function public.handle_new_auth_user();
-
-alter table public.profiles enable row level security;
-revoke all on table public.profiles from anon, authenticated;
-grant select on table public.profiles to authenticated;
-
-create policy profiles_read_own_role
-on public.profiles
-for select to authenticated
-using (id = (select auth.uid()));
+alter table public.app_users enable row level security;
+alter table public.auth_sessions enable row level security;
+revoke all on table public.app_users from public, anon, authenticated;
+revoke all on table public.auth_sessions from public, anon, authenticated;
 
 commit;

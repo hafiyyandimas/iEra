@@ -19,10 +19,7 @@ export async function fetchAnimal(id) {
   return data;
 }
 
-export async function createOfficialAnimal(animal, accessToken) {
-  if (!accessToken) throw new Error('Login admin diperlukan.');
-  const response = await apiClient.post('/animals', animal, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
+export async function createOfficialAnimal(animal) {
+  const response = await apiClient.post('/animals', animal);
   return unwrap(response);
 }

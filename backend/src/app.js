@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import authRoutes from './routes/authRoutes.js';
 import animalRoutes from './routes/animalRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getAllowedOrigins, isRequestOriginAllowed } from './config/cors.js';
@@ -8,6 +9,7 @@ const app = express();
 const allowedOrigins = getAllowedOrigins(process.env.ALLOWED_ORIGIN || 'http://localhost:5173');
 
 app.disable('x-powered-by');
+app.set('trust proxy', process.env.NODE_ENV === 'production' ? 1 : false);
 app.use((req, res, next) => {
   const origin = req.get('origin');
   if (!origin) return next();
@@ -20,6 +22,7 @@ app.use((req, res, next) => {
   return res.status(403).json({ success: false, error: 'Origin tidak diizinkan oleh CORS.' });
 });
 app.use(cors({
+  credentials: true,
   origin(origin, callback) {
     if (!origin || allowedOrigins.includes(new URL(origin).origin)) return callback(null, true);
     return callback(null, false);
@@ -27,6 +30,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 app.get('/health', (req, res) => res.json({ success: true, status: 'ok' }));
+app.use('/api/auth', authRoutes);
 app.use('/api/animals', animalRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);

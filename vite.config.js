@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  envPrefix: ['VITE_API_', 'VITE_SUPABASE_'],
+  envPrefix: ['VITE_API_'],
   server: {
     proxy: {
       '/api': {

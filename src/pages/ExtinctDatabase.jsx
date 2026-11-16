@@ -15,7 +15,7 @@ const extinctionYears = Array.from({ length: 25 }, (_, index) => 2001 + index);
 
 export default function ExtinctDatabasePage() {
   const { animals, loading, error, reload, favorites, toggleFavorite, notify } = useAppData();
-  const { profile, session } = useAuth();
+  const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
   const [search, setSearch] = useState('');
   const [year, setYear] = useState('');
@@ -30,7 +30,7 @@ export default function ExtinctDatabasePage() {
 
   const submitOfficialAnimal = async (animal) => {
     try {
-      await createOfficialAnimal(animal, session?.access_token);
+      await createOfficialAnimal(animal);
       await reload();
       setFormOpen(false);
       notify({ type: 'success', message: 'Spesies ditambahkan ke katalog resmi.' });

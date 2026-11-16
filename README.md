@@ -10,7 +10,8 @@ iEra adalah Progressive Web App tugas akhir PBB untuk menjelajahi katalog spesie
 - Halaman detail menampilkan sumber dan informasi gambar yang tersedia.
 - EraGuessr memperkirakan tahun lahir dengan rumus `tahun sekarang - umur` dan menampilkan maksimal tiga spesies yang cocok.
 - Favorit dan catatan tersimpan lokal di browser dan tidak disinkronkan antarperangkat.
-- Login memakai username dan password. Akun baru mendapat role `user`; admin ditetapkan manual melalui Supabase.
+- Login memakai username dan password tanpa Supabase Auth atau email. Password di-hash di backend dan sesi memakai cookie HttpOnly.
+- Akun baru mendapat role `user`; admin ditetapkan manual melalui tabel `public.app_users`.
 - Admin yang terotorisasi dapat menambah record katalog melalui REST API.
 - PWA memiliki manifest, service worker, install prompt, update prompt, dan cache untuk katalog publik.
 
@@ -23,7 +24,7 @@ iEra adalah Progressive Web App tugas akhir PBB untuk menjelajahi katalog spesie
 
 ## Menjalankan lokal
 
-Gunakan Node.js 20 atau lebih baru. Salin `.env.example` menjadi `.env.local` dan isi URL serta anon key Supabase. Salin `backend/.env.example` menjadi `backend/.env` dan isi konfigurasi server. Jangan menaruh service-role key di frontend.
+Gunakan Node.js 20 atau lebih baru. Salin `backend/.env.example` menjadi `backend/.env` dan isi konfigurasi server. Frontend tidak memerlukan kunci Supabase; service-role key tetap hanya disimpan di backend.
 
 Terminal pertama:
 
@@ -43,12 +44,11 @@ Vite berjalan di `http://localhost:5173`, backend lokal di `http://localhost:300
 
 ## Konfigurasi Supabase
 
-1. Jalankan `database/schema.sql` pada SQL Editor untuk membuat tabel, trigger, dan policy.
-2. Pastikan provider Email aktif dan konfirmasi email dimatikan. Form aplikasi hanya meminta username dan password; Supabase Auth menggunakan alias internal yang tidak dapat menerima email.
-3. Daftarkan akun melalui aplikasi. Akun baru otomatis memperoleh role `user`.
-4. Untuk admin, promosikan username secara manual dengan SQL di [docs/DATABASE.md](./docs/DATABASE.md).
+1. Jalankan `database/schema.sql` pada SQL Editor untuk membuat tabel aplikasi.
+2. Daftarkan akun melalui aplikasi. Akun baru otomatis memperoleh role `user`.
+3. Untuk admin, promosikan username secara manual dengan SQL di [docs/DATABASE.md](./docs/DATABASE.md).
 
-Tidak tersedia pemulihan password melalui email. Akun lama yang dibuat dengan alamat email tidak otomatis berpindah ke login username.
+Autentikasi username/password dikelola backend iEra; Supabase hanya digunakan sebagai database. Akun lama dari Supabase Auth tidak dapat dimigrasikan karena password-nya tidak dapat dibaca aplikasi. Pengguna harus mendaftar ulang dan admin perlu dipromosikan lagi. Akun Auth lama tidak dihapus oleh migrasi.
 
 Untuk reset total, `database/reset_iera.sql` menghapus katalog, profil, dan seluruh akun Auth pada project sebelum membangun ulang tabel. Jalankan hanya pada project Supabase khusus iEra.
 
@@ -59,12 +59,11 @@ Pengelompokan berikut menunjukkan variabel yang dipakai frontend dan backend, bu
 Frontend (nilai `VITE_` masuk ke bundle browser, jadi jangan simpan secret di sini):
 
 ```env
+# Opsional; biarkan kosong untuk API same-origin.
 VITE_API_BASE_URL=http://localhost:3000/api
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-or-publishable-key
 ```
 
-Backend (khusus server, tidak diekspos ke browser):
+Backend (khusus server, tidak diekspos ke browser; `SUPABASE_SERVICE_ROLE_KEY` digunakan hanya untuk akses database):
 
 ```env
 PORT=3000
@@ -73,7 +72,7 @@ SUPABASE_SERVICE_ROLE_KEY=server-only-key
 ALLOWED_ORIGIN=http://localhost:5173
 ```
 
-Pada Vercel, tambahkan kedua kelompok variabel di **Settings → Environment Variables** pada project yang sama. Untuk production same-origin, biarkan `VITE_API_BASE_URL` tidak diatur agar frontend memakai `/api`. `SUPABASE_SERVICE_ROLE_KEY` harus tetap menjadi environment variable server dan tidak boleh memakai awalan `VITE_`.
+Pada Vercel, tambahkan variabel backend di **Settings → Environment Variables**. Untuk production same-origin, biarkan `VITE_API_BASE_URL` tidak diatur agar frontend memakai `/api`. `SUPABASE_SERVICE_ROLE_KEY` harus tetap menjadi environment variable server dan tidak boleh memakai awalan `VITE_`.
 
 ## Routes
 

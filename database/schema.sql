@@ -47,61 +47,33 @@ alter table public.animals enable row level security;
 -- Catalog reads are performed by the server-side API using its server key.
 -- Do not grant public write access or put a service-role key in the frontend.
 
-create table if not exists public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  username text,
+create table if not exists public.app_users (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique
+    constraint app_users_username_check check (username ~ '^[a-z0-9_]{3,24}$'),
+  password_hash text not null,
   role text not null default 'user'
-    constraint profiles_role_check check (role in ('user', 'admin')),
+    constraint app_users_role_check check (role in ('user', 'admin')),
   created_at timestamptz not null default now()
 );
 
-alter table public.profiles add column if not exists username text;
-create unique index if not exists profiles_username_lower_idx
-  on public.profiles (lower(username))
-  where username is not null;
+create table if not exists public.auth_sessions (
+  token_hash text primary key,
+  user_id uuid not null references public.app_users (id) on delete cascade,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
 
-create or replace function public.handle_new_auth_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  new_username text;
-begin
-  new_username := lower(trim(new.raw_user_meta_data ->> 'username'));
-  if new_username is null or new_username !~ '^[a-z0-9_]{3,24}$' then
-    raise exception 'A valid username is required.';
-  end if;
+create index if not exists auth_sessions_user_id_idx on public.auth_sessions (user_id);
+create index if not exists auth_sessions_expires_at_idx on public.auth_sessions (expires_at);
 
-  insert into public.profiles (id, username, role)
-  values (new.id, new_username, 'user')
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists iera_create_profile_on_signup on auth.users;
-create trigger iera_create_profile_on_signup
-after insert on auth.users
-for each row execute function public.handle_new_auth_user();
-
-insert into public.profiles (id, role)
-select id, 'user' from auth.users
-on conflict (id) do nothing;
-
-alter table public.profiles enable row level security;
-revoke all on table public.profiles from anon, authenticated;
-grant select on table public.profiles to authenticated;
-
-drop policy if exists profiles_read_own_role on public.profiles;
-create policy profiles_read_own_role
-on public.profiles
-for select to authenticated
-using (id = (select auth.uid()));
+alter table public.app_users enable row level security;
+alter table public.auth_sessions enable row level security;
+revoke all on table public.app_users from public, anon, authenticated;
+revoke all on table public.auth_sessions from public, anon, authenticated;
 
 -- Promote a registered account manually in the Supabase SQL Editor:
--- update public.profiles
+-- update public.app_users
 -- set role = 'admin'
--- where lower(username) = lower('admin_username')
+-- where username = lower('admin_username')
 -- returning id, username, role;

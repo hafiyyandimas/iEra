@@ -5,13 +5,12 @@ import Button from '../ui/Button.jsx';
 import { useAuth } from '../../auth/AuthContext.jsx';
 
 export default function AuthDialog({ open, onClose }) {
-  const { isConfigured, signIn, signUp } = useAuth();
+  const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   if (!open) return null;
 
@@ -19,14 +18,9 @@ export default function AuthDialog({ open, onClose }) {
     event.preventDefault();
     setBusy(true);
     setError('');
-    setMessage('');
     try {
       if (mode === 'register') {
-        const result = await signUp(username, password);
-        if (result.needsEmailConfirmation) {
-          setMessage('Pendaftaran tertahan: matikan konfirmasi email pada pengaturan Email di Supabase Auth, lalu coba lagi.');
-          return;
-        }
+        await signUp(username, password);
       } else {
         await signIn(username, password);
       }
@@ -41,13 +35,11 @@ export default function AuthDialog({ open, onClose }) {
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setError('');
-    setMessage('');
   };
 
   const closeDialog = () => {
     setPassword('');
     setError('');
-    setMessage('');
     onClose();
   };
 
@@ -69,64 +61,58 @@ export default function AuthDialog({ open, onClose }) {
           </button>
         </header>
 
-        {!isConfigured ? (
-          <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">Autentikasi belum dikonfigurasi. Isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` di environment Vite.</p>
-        ) : (
-          <>
-            <p className="mb-4 text-sm text-muted">
-              {mode === 'login'
-                ? 'Masuk dengan username dan password.'
-                : 'Akun baru otomatis mendapat role user. Username harus unik.'}
-            </p>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <label htmlFor="auth-username" className="mb-1.5 block text-sm font-medium">Username</label>
-                <input
-                  id="auth-username"
-                  type="text"
-                  autoComplete="username"
-                  autoCapitalize="none"
-                  spellCheck="false"
-                  minLength={3}
-                  maxLength={24}
-                  pattern="[A-Za-z0-9_]{3,24}"
-                  required
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  className="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage"
-                />
-              </div>
-              <div>
-                <label htmlFor="auth-password" className="mb-1.5 block text-sm font-medium">Password</label>
-                <input
-                  id="auth-password"
-                  type="password"
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  minLength={8}
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage"
-                />
-              </div>
-              {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-              {message && <p role="status" className="text-sm text-forest">{message}</p>}
-              <Button type="submit" disabled={busy} className="w-full">
-                {busy ? 'Memproses…' : mode === 'login' ? 'Masuk' : 'Buat akun'}
-              </Button>
-            </form>
-            <p className="mt-4 text-center text-sm text-muted">
-              {mode === 'login' ? 'Belum punya akun?' : 'Sudah punya akun?'}{' '}
-              <button
-                type="button"
-                onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
-                className="font-semibold text-forest underline underline-offset-2"
-              >
-                {mode === 'login' ? 'Daftar' : 'Masuk'}
-              </button>
-            </p>
-          </>
-        )}
+        <p className="mb-4 text-sm text-muted">
+          {mode === 'login'
+            ? 'Masuk dengan username dan password.'
+            : 'Akun baru otomatis mendapat role user. Username harus unik.'}
+        </p>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="auth-username" className="mb-1.5 block text-sm font-medium">Username</label>
+            <input
+              id="auth-username"
+              type="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck="false"
+              minLength={3}
+              maxLength={24}
+              pattern="[A-Za-z0-9_]{3,24}"
+              required
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              className="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage"
+            />
+          </div>
+          <div>
+            <label htmlFor="auth-password" className="mb-1.5 block text-sm font-medium">Password</label>
+            <input
+              id="auth-password"
+              type="password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              minLength={8}
+              maxLength={128}
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage"
+            />
+          </div>
+          {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+          <Button type="submit" disabled={busy} className="w-full">
+            {busy ? 'Memproses…' : mode === 'login' ? 'Masuk' : 'Buat akun'}
+          </Button>
+        </form>
+        <p className="mt-4 text-center text-sm text-muted">
+          {mode === 'login' ? 'Belum punya akun?' : 'Sudah punya akun?'}{' '}
+          <button
+            type="button"
+            onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
+            className="font-semibold text-forest underline underline-offset-2"
+          >
+            {mode === 'login' ? 'Daftar' : 'Masuk'}
+          </button>
+        </p>
       </section>
     </div>,
     document.body

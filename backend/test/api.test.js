@@ -5,7 +5,7 @@ import app from '../src/app.js';
 import vercelHandler from '../../api/index.js';
 import { createRequireAdmin } from '../src/middleware/requireAdmin.js';
 import { getAllowedOrigins, isRequestOriginAllowed, normalizeOrigin } from '../src/config/cors.js';
-import { normalizeUsername, usernameToAuthEmail } from '../../src/auth/username.js';
+import { normalizeUsername } from '../../src/auth/username.js';
 
 async function withServer(run) {
   const server = app.listen(0);
@@ -45,7 +45,7 @@ test('same-origin API writes are not rejected by the CORS allowlist', async () =
       body: JSON.stringify({})
     });
     assert.equal(response.status, 401);
-    assert.equal((await response.json()).error, 'Login admin diperlukan.');
+    assert.equal((await response.json()).error, 'Login diperlukan.');
   });
 });
 
@@ -65,11 +65,29 @@ test('CORS normalizes configured origins and rejects unrelated origins', async (
   });
 });
 
-test('username login aliases are normalized and reject invalid usernames', () => {
+test('usernames are normalized and reject invalid values', () => {
   assert.equal(normalizeUsername('  Iera_Admin_1 '), 'iera_admin_1');
-  assert.equal(usernameToAuthEmail('Iera_Admin_1'), 'iera_admin_1@users.iera.invalid');
   assert.throws(() => normalizeUsername('ab'), /Username harus/);
   assert.throws(() => normalizeUsername('bad-name'), /Username harus/);
+});
+
+test('registration validates usernames and passwords before database access', async () => {
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'ab', password: 'short' })
+    });
+    assert.equal(response.status, 400);
+    assert.match((await response.json()).error, /Username harus/);
+  });
+});
+
+test('current-user endpoint requires a server session cookie', async () => {
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/auth/me`);
+    assert.equal(response.status, 401);
+  });
 });
 
 test('root Vercel function forwards rewritten health route', async () => {
@@ -116,42 +134,26 @@ function adminMiddlewareResponse() {
   };
 }
 
-function makeAdminMiddleware(role) {
-  return createRequireAdmin(() => ({
-    auth: {
-      async getUser(token) {
-        return { data: { user: token === 'valid-token' ? { id: 'user-id' } : null }, error: null };
-      }
-    },
-    from(table) {
-      assert.equal(table, 'profiles');
-      const query = {
-        select() { return query; },
-        eq(column, value) {
-          assert.equal(column, 'id');
-          assert.equal(value, 'user-id');
-          return query;
-        },
-        async maybeSingle() { return { data: role ? { role } : null, error: null }; }
-      };
-      return query;
-    }
-  }));
+function makeSessionMiddleware(role) {
+  return (request, response, next) => {
+    request.authUser = { id: 'user-id', username: 'test_user', role };
+    return next();
+  };
 }
 
 test('authenticated user role cannot write the official catalog', async () => {
-  const middleware = makeAdminMiddleware('user');
+  const middleware = createRequireAdmin(makeSessionMiddleware('user'));
   const response = adminMiddlewareResponse();
-  await middleware({ get: () => 'Bearer valid-token' }, response, () => assert.fail('User role must not pass.'));
+  await middleware({ get: () => '' }, response, () => assert.fail('User role must not pass.'));
   assert.equal(response.statusCode, 403);
 });
 
 test('admin role is accepted by the catalog write guard', async () => {
-  const middleware = makeAdminMiddleware('admin');
+  const middleware = createRequireAdmin(makeSessionMiddleware('admin'));
   const response = adminMiddlewareResponse();
   let nextCalled = false;
-  const request = { get: () => 'Bearer valid-token' };
+  const request = { get: () => '' };
   await middleware(request, response, () => { nextCalled = true; });
   assert.equal(nextCalled, true);
-  assert.equal(request.authUser.id, 'user-id');
+  assert.equal(request.authUser.role, 'admin');
 });
