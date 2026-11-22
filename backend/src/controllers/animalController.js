@@ -48,8 +48,8 @@ function validateAnimal(body, partial = false) {
     throw error;
   }
   if (!partial || 'extinction_year' in body) {
-    if (!Number.isInteger(body.extinction_year) || body.extinction_year < 2001 || body.extinction_year > 2025) {
-      const error = new Error('extinction_year harus integer antara 2001 dan 2025.');
+    if (!Number.isInteger(body.extinction_year) || body.extinction_year < 2001 || body.extinction_year > 2026) {
+      const error = new Error('extinction_year harus integer antara 2001 dan 2026.');
       error.status = 400;
       throw error;
     }
