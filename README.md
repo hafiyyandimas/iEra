@@ -6,7 +6,7 @@ iEra adalah Progressive Web App tugas akhir PBB untuk menjelajahi katalog spesie
 
 - Lima halaman utama: Era, Extinct Database, EraGuessr, Favorit, dan About Me.
 - Timeline vertikal dari 2001 sampai 2026. Data katalog resmi dibatasi ke 2001 sampai 2025; 2026 hanya penanda visual.
-- Katalog dapat dicari berdasarkan nama umum atau nama ilmiah, dan difilter berdasarkan tahun.
+- Katalog dapat dicari berdasarkan nama umum atau nama ilmiah, difilter berdasarkan tahun, dan ditampilkan 10 spesies per halaman.
 - Halaman detail menampilkan sumber dan informasi gambar yang tersedia.
 - EraGuessr memperkirakan tahun lahir dengan rumus `tahun sekarang - umur` dan menampilkan maksimal tiga spesies yang cocok.
 - Favorit dan catatan selalu tersimpan di perangkat. Saat masuk, favorit katalog juga disalin ke akun sehingga dapat dipakai di perangkat lain; spesies pribadi tidak pernah dikirim ke server.

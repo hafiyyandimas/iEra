@@ -39,6 +39,20 @@ function slugify(value) {
     .replace(/^-|-$/g, '');
 }
 
+const YEAR_MIN = 2001;
+const YEAR_MAX = 2026;
+
+function nativeErrorFor(name, input) {
+  if (!input.value.trim()) return 'Kolom ini wajib diisi.';
+  if (name === 'extinction_year') {
+    const year = Number(input.value);
+    if (!Number.isInteger(year)) return 'Tahun harus berupa angka bulat.';
+    return `Tahun harus antara ${YEAR_MIN} dan ${YEAR_MAX}.`;
+  }
+  if (name.endsWith('_url')) return 'Gunakan URL lengkap, misalnya https://contoh.org/sumber.';
+  return 'Periksa kembali isian ini.';
+}
+
 export default function AnimalForm({ animal = null, onClose, onSubmit }) {
   const editing = Boolean(animal);
   const [values, setValues] = useState(() => {
@@ -64,8 +78,8 @@ export default function AnimalForm({ animal = null, onClose, onSubmit }) {
     event.preventDefault();
     if (saving) return;
     const year = Number(values.extinction_year);
-    if (!Number.isInteger(year) || year < 2001 || year > 2025) {
-      setError('Tahun harus berupa angka bulat antara 2001 dan 2025.');
+    if (!Number.isInteger(year) || year < YEAR_MIN || year > YEAR_MAX) {
+      setError(`Tahun harus berupa angka bulat antara ${YEAR_MIN} dan ${YEAR_MAX}.`);
       return;
     }
     for (const field of ['image_url', 'source_url']) {
@@ -123,19 +137,25 @@ export default function AnimalForm({ animal = null, onClose, onSubmit }) {
                   required={required}
                   type={name === 'extinction_year' ? 'number' : name.endsWith('_url') ? 'url' : 'text'}
                   maxLength={200}
-                  min={name === 'extinction_year' ? 2001 : undefined}
-                  max={name === 'extinction_year' ? 2025 : undefined}
+                  min={name === 'extinction_year' ? YEAR_MIN : undefined}
+                  max={name === 'extinction_year' ? YEAR_MAX : undefined}
                   step={name === 'extinction_year' ? 1 : undefined}
                   value={values[name] ?? ''}
                   onChange={(event) => setValues((current) => ({ ...current, [name]: event.target.value }))}
+                  onInvalid={(event) => event.currentTarget.setCustomValidity(nativeErrorFor(name, event.currentTarget))}
+                  onInput={(event) => event.currentTarget.setCustomValidity('')}
+                  aria-describedby={name === 'extinction_year' ? 'animal-extinction_year-hint' : undefined}
                   className="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage"
                 />
+                {name === 'extinction_year' && (
+                  <p id="animal-extinction_year-hint" className="mt-1 text-xs text-muted">Rentang {YEAR_MIN} sampai {YEAR_MAX}.</p>
+                )}
               </div>
             ))}
           </div>
           <div>
             <label htmlFor="animal-description" className="mb-1.5 block text-sm font-medium">Deskripsi *</label>
-            <textarea id="animal-description" rows={3} maxLength={5000} required value={values.description} onChange={(event) => setValues((current) => ({ ...current, description: event.target.value }))} className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage" />
+            <textarea id="animal-description" rows={3} maxLength={5000} required value={values.description} onChange={(event) => setValues((current) => ({ ...current, description: event.target.value }))} onInvalid={(event) => event.currentTarget.setCustomValidity('Deskripsi wajib diisi.')} onInput={(event) => event.currentTarget.setCustomValidity('')} className="w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-sage" />
           </div>
           <label className="flex items-start gap-3 rounded-xl bg-mist p-3 text-sm">
             <input type="checkbox" checked={Boolean(values.year_is_estimated)} onChange={(event) => setValues((current) => ({ ...current, year_is_estimated: event.target.checked }))} className="mt-0.5 accent-forest" />

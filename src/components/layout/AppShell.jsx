@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Leaf, WifiOff } from 'lucide-react';
+import { Download, Leaf, WifiOff } from 'lucide-react';
 import { Link, useLocation, useNavigationType } from 'react-router-dom';
 import BottomNavigation from './BottomNavigation.jsx';
 import Button from '../ui/Button.jsx';
@@ -34,7 +34,12 @@ export default function AppShell({ isOnline, install, canInstall, children }) {
           </Link>
           <div className="flex items-center gap-2">
             {!isOnline && <span className="dialog-enter inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1.5 text-xs font-medium text-amber-900"><WifiOff size={14} /> Offline</span>}
-            {canInstall && <Button variant="outline" className="min-h-9 px-3 text-xs" onClick={install}>Pasang</Button>}
+            {canInstall && (
+              <Button variant="outline" className="!min-h-9 gap-1.5 px-2.5 py-1 text-xs" aria-label="Install aplikasi iEra" onClick={install}>
+                <Download size={15} aria-hidden="true" />
+                <span>Install</span>
+              </Button>
+            )}
             <AuthControl />
           </div>
         </div>
