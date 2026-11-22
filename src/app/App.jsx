@@ -19,6 +19,17 @@ import AnimalDetailPage from '../pages/AnimalDetail.jsx';
 import NotFoundPage from '../pages/NotFound.jsx';
 
 export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppWorkspace />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+// Everything below reads auth state, so it must render inside AuthProvider.
+function AppWorkspace() {
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
   const isOnline = useOnlineStatus();
@@ -39,9 +50,11 @@ export default function App() {
     reload: catalog.reload,
     favorites: favorites.favorites,
     favoriteError: favorites.error,
+    favoriteSyncing: favorites.syncing,
     toggleFavorite: favorites.toggleFavorite,
     removeFavorite: favorites.removeFavorite,
     updateNote: favorites.updateNote,
+    syncFavorites: favorites.syncFavorites,
     personalAnimals: personal.animals,
     personalError: personal.error,
     createPersonalAnimal: personal.createAnimal,
@@ -52,29 +65,25 @@ export default function App() {
   }), [catalog, favorites, personal, isOnline, notify]);
 
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppDataContext.Provider value={value}>
-          <AppShell
-            isOnline={isOnline}
-            install={installPrompt.install}
-            canInstall={installPrompt.canInstall}
-          >
-            <Routes>
-              <Route path="/" element={<Navigate to="/era" replace />} />
-              <Route path="/era" element={<EraPage />} />
-              <Route path="/database" element={<ExtinctDatabasePage />} />
-              <Route path="/guessr" element={<EraGuessrPage />} />
-              <Route path="/favorit" element={<FavoritesPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/animal/:id" element={<AnimalDetailPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </AppShell>
-          <Toast toast={toast} onDismiss={() => setToast(null)} />
-          <UpdatePrompt />
-        </AppDataContext.Provider>
-      </AuthProvider>
-    </BrowserRouter>
+    <AppDataContext.Provider value={value}>
+      <AppShell
+        isOnline={isOnline}
+        install={installPrompt.install}
+        canInstall={installPrompt.canInstall}
+      >
+        <Routes>
+          <Route path="/" element={<Navigate to="/era" replace />} />
+          <Route path="/era" element={<EraPage />} />
+          <Route path="/database" element={<ExtinctDatabasePage />} />
+          <Route path="/guessr" element={<EraGuessrPage />} />
+          <Route path="/favorit" element={<FavoritesPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/animal/:id" element={<AnimalDetailPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AppShell>
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
+      <UpdatePrompt />
+    </AppDataContext.Provider>
   );
 }

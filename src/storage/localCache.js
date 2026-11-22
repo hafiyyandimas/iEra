@@ -1,3 +1,5 @@
+import { normalizeFavorite } from '../utils/favorites.js';
+
 const ANIMALS_KEY = 'iera.animals.v2';
 const LEGACY_ANIMALS_KEY = 'iera.animals.v1';
 const FAVORITES_KEY = 'iera.favorites.v2';
@@ -41,13 +43,15 @@ export function getCachedAnimals() {
 export const cacheAnimals = (animals) => writeJson(ANIMALS_KEY, animals);
 export function getLocalFavorites() {
   const current = readJson(FAVORITES_KEY, null);
-  if (current !== null) return readArray(FAVORITES_KEY, []);
+  if (current !== null) {
+    return readArray(FAVORITES_KEY, []).map(normalizeFavorite).filter(Boolean);
+  }
   const legacy = readArray(LEGACY_FAVORITES_KEY, []);
-  return legacy.filter((favorite) => typeof favorite.animalId === 'string').map((favorite) => ({
-    animalId: favorite.animalId,
-    note: favorite.note || '',
-    savedAt: favorite.savedAt || favorite.updatedAt || new Date().toISOString()
-  }));
+  return legacy.map((favorite) => normalizeFavorite({
+    animalId: favorite?.animalId,
+    note: favorite?.note || '',
+    savedAt: favorite?.savedAt || favorite?.updatedAt
+  })).filter(Boolean);
 }
 export const saveLocalFavorites = (favorites) => writeJson(FAVORITES_KEY, favorites);
 export const getPersonalAnimals = () => readArray(PERSONAL_ANIMALS_KEY, []);

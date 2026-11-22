@@ -23,3 +23,8 @@ export async function createOfficialAnimal(animal) {
   const response = await apiClient.post('/animals', animal);
   return unwrap(response);
 }
+
+export async function updateOfficialAnimal(id, animal) {
+  const response = await apiClient.put(`/animals/${encodeURIComponent(id)}`, animal);
+  return unwrap(response);
+}

@@ -111,7 +111,7 @@ export default function EraPage() {
 
   const handleFavorite = (animal) => {
     const saved = toggleFavorite(animal);
-    notify({ type: saved ? 'success' : 'error', message: saved ? 'Koleksi favorit diperbarui di perangkat.' : 'Favorit tidak dapat disimpan di perangkat.' });
+    notify({ type: saved ? 'success' : 'error', message: saved ? 'Koleksi favorit diperbarui.' : 'Favorit tidak dapat disimpan.' });
   };
 
   return (

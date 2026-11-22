@@ -79,9 +79,23 @@ create table public.auth_sessions (
 create index auth_sessions_user_id_idx on public.auth_sessions (user_id);
 create index auth_sessions_expires_at_idx on public.auth_sessions (expires_at);
 
+create table public.favorites (
+  user_id uuid not null references public.app_users (id) on delete cascade,
+  animal_id uuid not null references public.animals (id) on delete cascade,
+  note text not null default ''
+    constraint favorites_note_length check (char_length(note) <= 500),
+  saved_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, animal_id)
+);
+
+create index favorites_user_saved_at_idx on public.favorites (user_id, saved_at desc);
+
 alter table public.app_users enable row level security;
 alter table public.auth_sessions enable row level security;
+alter table public.favorites enable row level security;
 revoke all on table public.app_users from public, anon, authenticated;
 revoke all on table public.auth_sessions from public, anon, authenticated;
+revoke all on table public.favorites from public, anon, authenticated;
 
 commit;

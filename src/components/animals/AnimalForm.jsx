@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import Button from '../ui/Button.jsx';
@@ -39,10 +39,26 @@ function slugify(value) {
     .replace(/^-|-$/g, '');
 }
 
-export default function AnimalForm({ onClose, onSubmit }) {
-  const [values, setValues] = useState(emptyForm);
+export default function AnimalForm({ animal = null, onClose, onSubmit }) {
+  const editing = Boolean(animal);
+  const [values, setValues] = useState(() => {
+    if (!animal) return emptyForm;
+    return Object.fromEntries(Object.keys(emptyForm).map((name) => {
+      if (name === 'extinction_year') return [name, String(animal.extinction_year ?? '')];
+      if (name === 'year_is_estimated') return [name, Boolean(animal.year_is_estimated)];
+      return [name, animal[name] ?? ''];
+    }));
+  });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && !saving) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, saving]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -68,13 +84,17 @@ export default function AnimalForm({ onClose, onSubmit }) {
       .replace(/-+$/g, '');
     setSaving(true);
     try {
-      await onSubmit({
+      const payload = {
         ...values,
-        slug: `${speciesSlug || `species-${Date.now()}`}-${year}`,
+        slug: animal?.slug || `${speciesSlug || `species-${Date.now()}`}-${year}`,
         extinction_year: year,
         year_is_estimated: Boolean(values.year_is_estimated),
         description: values.description.trim()
-      });
+      };
+      for (const [name, , required] of fields) {
+        if (!required && payload[name] === '') payload[name] = null;
+      }
+      await onSubmit(payload);
       setError('');
     } catch (submitError) {
       setError(submitError.message || 'Data gagal disimpan. Periksa koneksi, lalu coba lagi.');
@@ -88,8 +108,8 @@ export default function AnimalForm({ onClose, onSubmit }) {
       <section role="dialog" aria-modal="true" aria-labelledby="animal-form-title" className="dialog-enter max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl bg-paper">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-white px-5 py-4">
           <div>
-            <h2 id="animal-form-title" className="font-bold">Tambah ke katalog resmi</h2>
-            <p className="mt-1 text-xs text-muted">Data ini akan tersimpan di katalog iEra.</p>
+            <h2 id="animal-form-title" className="font-bold">{editing ? 'Edit data spesies' : 'Tambah ke katalog resmi'}</h2>
+            <p className="mt-1 text-xs text-muted">{editing ? 'Perubahan langsung tersimpan di katalog resmi iEra.' : 'Data ini akan tersimpan di katalog iEra.'}</p>
           </div>
           <button type="button" aria-label="Tutup form" onClick={onClose} disabled={saving} className="grid size-10 place-items-center rounded-xl text-muted hover:bg-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest disabled:opacity-50"><X size={19} /></button>
         </header>
@@ -124,7 +144,7 @@ export default function AnimalForm({ onClose, onSubmit }) {
           {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
           <div className="flex justify-end gap-2 border-t border-line pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={saving}>Batal</Button>
-            <Button type="submit" disabled={saving}>{saving ? 'Menyimpan…' : 'Simpan ke katalog'}</Button>
+            <Button type="submit" disabled={saving}>{saving ? 'Menyimpan…' : editing ? 'Simpan perubahan' : 'Simpan ke katalog'}</Button>
           </div>
         </form>
       </section>

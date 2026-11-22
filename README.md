@@ -1,6 +1,6 @@
 # iEra: Extinct Species Explorer
 
-iEra adalah Progressive Web App tugas akhir PBB untuk menjelajahi katalog spesies yang tercatat punah berdasarkan tahun, memperkirakan tahun lahir dari umur, dan menyimpan favorit serta catatan pada perangkat. Admin yang terotorisasi dapat menambahkan spesies ke katalog resmi (Admin hanya bisa ditambahkan melalui Supabase).
+iEra adalah Progressive Web App tugas akhir PBB untuk menjelajahi katalog spesies yang tercatat punah berdasarkan tahun, memperkirakan tahun lahir dari umur, dan menyimpan favorit serta catatan pada perangkat dan akun. Admin yang terotorisasi dapat menambahkan spesies ke katalog resmi (Admin hanya bisa ditambahkan melalui Supabase).
 
 ## Fitur
 
@@ -9,10 +9,10 @@ iEra adalah Progressive Web App tugas akhir PBB untuk menjelajahi katalog spesie
 - Katalog dapat dicari berdasarkan nama umum atau nama ilmiah, dan difilter berdasarkan tahun.
 - Halaman detail menampilkan sumber dan informasi gambar yang tersedia.
 - EraGuessr memperkirakan tahun lahir dengan rumus `tahun sekarang - umur` dan menampilkan maksimal tiga spesies yang cocok.
-- Favorit dan catatan tersimpan lokal di browser dan tidak disinkronkan antarperangkat.
+- Favorit dan catatan selalu tersimpan di perangkat. Saat masuk, favorit katalog juga disalin ke akun sehingga dapat dipakai di perangkat lain; spesies pribadi tidak pernah dikirim ke server.
 - Login memakai username dan password tanpa Supabase Auth atau email. Password di-hash di backend dan sesi memakai cookie HttpOnly.
 - Akun baru mendapat role `user`; admin ditetapkan manual melalui tabel `public.app_users`.
-- Admin yang terotorisasi dapat menambah record katalog melalui REST API.
+- Admin yang terotorisasi dapat menambah record katalog dan mengedit data spesies dari halaman detail melalui REST API.
 - PWA memiliki manifest, service worker, install prompt, update prompt, dan cache untuk katalog publik.
 
 ## Teknologi
@@ -45,8 +45,9 @@ Vite berjalan di `http://localhost:5173`, backend lokal di `http://localhost:300
 ## Konfigurasi Supabase
 
 1. Jalankan `database/schema.sql` pada SQL Editor untuk membuat tabel aplikasi.
-2. Daftarkan akun melalui aplikasi. Akun baru otomatis memperoleh role `user`.
-3. Untuk admin, promosikan username secara manual dengan SQL di [docs/DATABASE.md](./docs/DATABASE.md).
+2. Untuk database yang sudah berjalan sebelum fitur favorit akun, jalankan `database/migration_account_favorites.sql` satu kali. Tanpa tabel ini favorit tetap tersimpan di perangkat, tetapi sinkronisasi akun gagal.
+3. Daftarkan akun melalui aplikasi. Akun baru otomatis memperoleh role `user`.
+4. Untuk admin, promosikan username secara manual dengan SQL di [docs/DATABASE.md](./docs/DATABASE.md).
 
 Autentikasi username/password dikelola backend iEra; Supabase hanya digunakan sebagai database. Akun lama dari Supabase Auth tidak dapat dimigrasikan karena password-nya tidak dapat dibaca aplikasi. Pengguna harus mendaftar ulang dan admin perlu dipromosikan lagi. Akun Auth lama tidak dihapus oleh migrasi.
 
@@ -81,7 +82,7 @@ Pada Vercel, tambahkan variabel backend di **Settings → Environment Variables*
 | `/era` | Timeline spesies |
 | `/database` | Katalog resmi |
 | `/guessr` | Pencarian berdasarkan perkiraan tahun lahir |
-| `/favorit` | Favorit dan catatan lokal |
+| `/favorit` | Favorit dan catatan (perangkat dan akun) |
 | `/about` | Profil praktikan |
 | `/animal/:id` | Detail spesies |
 

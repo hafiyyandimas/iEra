@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Heart, Save } from 'lucide-react';
+import { Heart, RefreshCw, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppData } from '../app/AppDataContext.jsx';
+import { useAuth } from '../auth/AuthContext.jsx';
 import AnimalCard from '../components/animals/AnimalCard.jsx';
 import EmptyState from '../components/feedback/EmptyState.jsx';
 import ErrorState from '../components/feedback/ErrorState.jsx';
@@ -32,27 +33,52 @@ function FavoriteNote({ favorite, onSave }) {
 }
 
 export default function FavoritesPage() {
-  const { animals, personalAnimals, favorites, favoriteError, updateNote, removeFavorite, notify } = useAppData();
+  const { user } = useAuth();
+  const {
+    animals,
+    personalAnimals,
+    favorites,
+    favoriteError,
+    favoriteSyncing,
+    updateNote,
+    removeFavorite,
+    syncFavorites,
+    notify
+  } = useAppData();
   const [deleteTarget, setDeleteTarget] = useState(null);
   const animalMap = useMemo(() => new Map([...animals, ...personalAnimals].map((animal) => [animal.id, animal])), [animals, personalAnimals]);
   const favoriteItems = favorites.map((favorite) => ({ favorite, animal: animalMap.get(favorite.animalId) }));
 
   const saveNote = (animalId, note) => {
     const saved = updateNote(animalId, note);
-    notify({ type: saved ? 'success' : 'error', message: saved ? 'Catatan disimpan di perangkat ini.' : 'Catatan tidak dapat disimpan.' });
+    const destination = user ? 'perangkat dan akun' : 'perangkat ini';
+    notify({ type: saved ? 'success' : 'error', message: saved ? `Catatan disimpan di ${destination}.` : 'Catatan tidak dapat disimpan.' });
   };
   const confirmDelete = () => {
     const removed = removeFavorite(deleteTarget.animalId);
     setDeleteTarget(null);
-    notify({ type: removed ? 'success' : 'error', message: removed ? 'Favorit dihapus dari perangkat.' : 'Favorit tidak dapat dihapus.' });
+    notify({ type: removed ? 'success' : 'error', message: removed ? 'Favorit dihapus.' : 'Favorit tidak dapat dihapus.' });
+  };
+  const handleSync = async () => {
+    const synced = await syncFavorites();
+    notify({ type: synced ? 'success' : 'error', message: synced ? 'Favorit disinkronkan dengan akun.' : 'Sinkronisasi akun gagal. Coba lagi.' });
   };
 
   return (
     <section className="space-y-6">
       <header>
-        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-forest"><Heart size={14} /> Koleksi di perangkat</p>
+        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-forest"><Heart size={14} /> Koleksi favorit</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">Favorit</h1>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted">Favorit dan catatan tersimpan hanya di perangkat ini; tidak ada sinkronisasi akun atau antarperangkat.</p>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted">
+          {user
+            ? `Favorit dan catatan tersimpan di perangkat ini dan di akun @${user.username}.`
+            : 'Favorit dan catatan tersimpan di perangkat ini. Masuk agar ikut tersimpan di akun.'}
+        </p>
+        {user && (
+          <Button variant="outline" className="mt-3 min-h-9 px-3 text-xs" onClick={handleSync} disabled={favoriteSyncing}>
+            <RefreshCw size={14} /> {favoriteSyncing ? 'Menyinkronkan…' : 'Sinkronkan sekarang'}
+          </Button>
+        )}
       </header>
       {favoriteError && <ErrorState message={favoriteError} />}
       {favoriteItems.length ? (
@@ -75,7 +101,7 @@ export default function FavoritesPage() {
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="Hapus dari favorit?"
-        description="Favorit dan catatannya akan dihapus dari penyimpanan lokal perangkat."
+        description={user ? 'Favorit dan catatannya akan dihapus dari perangkat ini dan akun.' : 'Favorit dan catatannya akan dihapus dari penyimpanan lokal perangkat.'}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />

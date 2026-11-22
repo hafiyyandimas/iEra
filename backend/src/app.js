@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import animalRoutes from './routes/animalRoutes.js';
+import favoriteRoutes from './routes/favoriteRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getAllowedOrigins, isRequestOriginAllowed } from './config/cors.js';
 
@@ -32,6 +33,7 @@ app.use(express.json({ limit: '1mb' }));
 app.get('/health', (req, res) => res.json({ success: true, status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/animals', animalRoutes);
+app.use('/api/favorites', favoriteRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

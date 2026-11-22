@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin, Pencil } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useAppData } from '../app/AppDataContext.jsx';
-import { fetchAnimal } from '../services/animalService.js';
+import { useAuth } from '../auth/AuthContext.jsx';
+import { fetchAnimal, updateOfficialAnimal } from '../services/animalService.js';
 import { getApiError } from '../services/apiClient.js';
+import AnimalForm from '../components/animals/AnimalForm.jsx';
 import Button from '../components/ui/Button.jsx';
 import FavoriteHeart from '../components/ui/FavoriteHeart.jsx';
 import SmartImage from '../components/ui/SmartImage.jsx';
@@ -12,14 +14,17 @@ import LoadingState from '../components/feedback/LoadingState.jsx';
 
 export default function AnimalDetailPage() {
   const { id } = useParams();
-  const { animals, personalAnimals, favorites, toggleFavorite, isOnline, notify } = useAppData();
+  const { animals, personalAnimals, favorites, toggleFavorite, reload, isOnline, notify } = useAppData();
+  const { profile } = useAuth();
   const [remoteAnimal, setRemoteAnimal] = useState(null);
   const [loadingRemote, setLoadingRemote] = useState(false);
   const [error, setError] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
   const animal = useMemo(() => (
     [...personalAnimals, ...animals].find((item) => item.id === id || item.slug === id) || remoteAnimal
   ), [animals, personalAnimals, id, remoteAnimal]);
   const isFavorite = favorites.some((favorite) => favorite.animalId === animal?.id);
+  const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
     setError('');
@@ -41,7 +46,18 @@ export default function AnimalDetailPage() {
 
   const handleFavorite = () => {
     const saved = toggleFavorite(animal);
-    notify({ type: saved ? 'success' : 'error', message: saved ? 'Koleksi favorit diperbarui di perangkat.' : 'Favorit tidak dapat disimpan.' });
+    notify({ type: saved ? 'success' : 'error', message: saved ? 'Koleksi favorit diperbarui.' : 'Favorit tidak dapat disimpan.' });
+  };
+
+  const saveEditedAnimal = async (changes) => {
+    try {
+      await updateOfficialAnimal(animal.id, changes);
+      await reload();
+      setEditOpen(false);
+      notify({ type: 'success', message: 'Data spesies diperbarui di katalog resmi.' });
+    } catch (saveError) {
+      throw new Error(getApiError(saveError));
+    }
   };
 
   if (loadingRemote && !animal) return <LoadingState label="Memuat detail spesies…" />;
@@ -73,7 +89,12 @@ export default function AnimalDetailPage() {
               <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">{animal.common_name}</h1>
               <p className="mt-1 text-base italic text-muted">{animal.scientific_name}</p>
             </div>
-            <Button variant={isFavorite ? 'secondary' : 'outline'} aria-pressed={isFavorite} onClick={handleFavorite}><FavoriteHeart active={isFavorite} size={16} /> {isFavorite ? 'Hapus favorit' : 'Tambah favorit'}</Button>
+            <div className="flex flex-wrap gap-2">
+              {isAdmin && !animal.is_personal && (
+                <Button variant="outline" onClick={() => setEditOpen(true)}><Pencil size={16} /> Edit data</Button>
+              )}
+              <Button variant={isFavorite ? 'secondary' : 'outline'} aria-pressed={isFavorite} onClick={handleFavorite}><FavoriteHeart active={isFavorite} size={16} /> {isFavorite ? 'Hapus favorit' : 'Tambah favorit'}</Button>
+            </div>
           </div>
           {animal.description && <p className="whitespace-pre-line text-sm leading-7 text-muted">{animal.description}</p>}
           {(animal.habitat || animal.region) && (
@@ -89,6 +110,9 @@ export default function AnimalDetailPage() {
           </div>}
         </div>
       </div>
+      {editOpen && isAdmin && !animal.is_personal && (
+        <AnimalForm animal={animal} onClose={() => setEditOpen(false)} onSubmit={saveEditedAnimal} />
+      )}
     </article>
   );
 }

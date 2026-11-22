@@ -1,6 +1,6 @@
 # Database katalog
 
-Supabase menyimpan katalog resmi, akun aplikasi, dan sesi. Favorit, catatan, serta data hewan pribadi tetap berada di `localStorage`.
+Supabase menyimpan katalog resmi, akun aplikasi, sesi, dan favorit akun. Favorit tetap dicache di `localStorage` agar dapat dibuka offline; spesies pribadi hanya ada di `localStorage`.
 
 ## Tabel katalog `public.animals`
 
@@ -15,7 +15,15 @@ Skema menyimpan `extinction_year INTEGER` dan `year_is_estimated BOOLEAN`, bukan
 
 Skema membuat tabel `public.app_users` dan `public.auth_sessions`. Password disimpan sebagai hash scrypt; tabel hanya dapat diakses melalui backend menggunakan service-role key. Akun baru selalu mendapat role `user`.
 
-Untuk database lama yang telah menjalankan skema sebelumnya, jalankan `database/migration_username_password_auth.sql`. Migrasi menyiapkan tabel autentikasi baru dan menonaktifkan trigger profil lama; akun Supabase Auth/profil lama tidak dihapus atau dimigrasikan. Pengguna harus mendaftar ulang dan admin perlu dipromosikan lagi.
+## Tabel favorit `public.favorites`
+
+Favorit katalog milik akun yang sedang masuk disimpan di `public.favorites` dengan kunci utama gabungan `(user_id, animal_id)`. Kolomnya `note` (maksimal 500 karakter), `saved_at`, dan `updated_at`. `animal_id` mereferensikan `public.animals`, jadi hanya spesies katalog resmi yang dapat disinkronkan; favorit spesies pribadi tetap di `localStorage` perangkat.
+
+Baris hanya ditulis backend dengan service-role key, dan `user_id` diambil dari sesi cookie. RLS aktif serta seluruh akses `anon` dan `authenticated` dicabut. Menghapus akun atau record katalog akan menghapus favorit terkait melalui `on delete cascade`.
+
+Untuk database lama yang telah menjalankan skema sebelumnya, jalankan `database/migration_account_favorites.sql`. Tanpa tabel ini aplikasi tetap berjalan dan favorit tetap tersimpan di perangkat, tetapi sinkronisasi akun gagal.
+
+Untuk database lama dengan skema autentikasi sebelum username/password, jalankan `database/migration_username_password_auth.sql`. Migrasi menyiapkan tabel autentikasi baru dan menonaktifkan trigger profil lama; akun Supabase Auth/profil lama tidak dihapus atau dimigrasikan. Pengguna harus mendaftar ulang dan admin perlu dipromosikan lagi.
 
 ## Reset total
 
