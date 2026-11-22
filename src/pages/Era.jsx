@@ -121,7 +121,7 @@ export default function EraPage() {
         <div className="relative">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sage">Timeline vertikal</p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight">Era</h1>
-          <p className="mt-2 max-w-md text-sm leading-relaxed text-white/80">Jelajahi catatan spesies dari 2001 hingga 2025. Tahun 2026 menandai batas timeline, bukan tahun katalog.</p>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-white/80">Jelajahi catatan spesies dari 2001 hingga 2026.</p>
           <EraStats total={animals.length} yearsWithRecords={yearsWithRecords} loading={loading} />
         </div>
       </header>
