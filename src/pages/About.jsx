@@ -1,6 +1,7 @@
 import { BookOpen, GraduationCap, IdCard, Leaf } from 'lucide-react';
 import { profile } from '../data/profile.js';
 import RingArt from '../components/ui/RingArt.jsx';
+import Button from '../components/ui/Button.jsx';
 
 const details = [
   { label: 'Nama', value: profile.name, icon: IdCard },
@@ -27,6 +28,11 @@ export default function AboutPage() {
           </div>
         ))}
       </div>
+      <Button
+        onClick={() => window.alert(`NIM: ${profile.nim}\nJudul Tugas Akhir: ${profile.thesisTitle}`)}
+      >
+        Info Tugas Akhir
+      </Button>
     </section>
   );
 }
